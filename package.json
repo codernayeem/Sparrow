@@ -1,0 +1,38 @@
+{
+  "name": "sparrow",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+	"main": "backend/server.js",
+  "scripts": {
+		"dev": "cross-env NODE_ENV=development nodemon backend/server.js",
+		"start": "cross-env NODE_ENV=production node backend/server.js",
+		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+	},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codernayeem/Sparrow.git"
+  },
+  "keywords": [],
+  "author": "",
+	"type": "module",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codernayeem/Sparrow/issues"
+  },
+  "homepage": "https://github.com/codernayeem/Sparrow#readme",
+	"dependencies": {
+		"bcryptjs": "^2.4.3",
+		"cloudinary": "^2.1.0",
+		"cookie-parser": "^1.4.6",
+		"cors": "^2.8.5",
+		"cross-env": "^10.0.0",
+		"dotenv": "^16.4.5",
+		"express": "^4.19.2",
+		"jsonwebtoken": "^9.0.2",
+		"mongoose": "^8.3.1"
+	},
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
