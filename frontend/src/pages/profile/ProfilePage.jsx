@@ -13,6 +13,7 @@ const ProfilePage = () => {
   
   const [editForm, setEditForm] = useState({
     fullName: '',
+    username: '',
     email: '',
     bio: '',
     location: '',
@@ -20,7 +21,7 @@ const ProfilePage = () => {
   });
 
   const navigate = useNavigate();
-  const { email } = useParams();
+  const { username } = useParams();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -30,11 +31,12 @@ const ProfilePage = () => {
           const userData = await response.json();
           setCurrentUser(userData);
           
-          // If no email param, show current user's profile
-          if (!email) {
+          // If no username param, show current user's profile
+          if (!username) {
             setUser(userData);
             setEditForm({
               fullName: userData.fullName,
+              username: userData.username,
               email: userData.email,
               bio: userData.bio || '',
               location: userData.location || '',
@@ -51,13 +53,13 @@ const ProfilePage = () => {
     };
 
     fetchCurrentUser();
-  }, [navigate, email]);
+  }, [navigate, username]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (email && currentUser) {
+      if (username && currentUser) {
         try {
-          const response = await fetch(`/api/users/profile/${email}`);
+          const response = await fetch(`/api/users/profile/${username}`);
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
@@ -66,6 +68,7 @@ const ProfilePage = () => {
             if (userData._id === currentUser._id) {
               setEditForm({
                 fullName: userData.fullName,
+                username: userData.username,
                 email: userData.email,
                 bio: userData.bio || '',
                 location: userData.location || '',
@@ -81,7 +84,7 @@ const ProfilePage = () => {
         } finally {
           setIsLoading(false);
         }
-      } else if (currentUser && !email) {
+      } else if (currentUser && !username) {
         setIsLoading(false);
       }
     };
@@ -89,7 +92,7 @@ const ProfilePage = () => {
     if (currentUser) {
       fetchUserProfile();
     }
-  }, [email, currentUser]);
+  }, [username, currentUser]);
 
   const handleInputChange = (e) => {
     setEditForm({
@@ -325,7 +328,8 @@ const ProfilePage = () => {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">{user.fullName}</h1>
-                  <p className="text-gray-600">{user.email}</p>
+                  <p className="text-blue-600 font-medium">@{user.username}</p>
+                  <p className="text-gray-600 text-sm">{user.email}</p>
                   {user.bio && (
                     <p className="mt-2 text-gray-700">{user.bio}</p>
                   )}
@@ -372,6 +376,7 @@ const ProfilePage = () => {
                             setIsEditing(false);
                             setEditForm({
                               fullName: user.fullName,
+                              username: user.username,
                               email: user.email,
                               bio: user.bio || '',
                               location: user.location || '',
@@ -434,6 +439,25 @@ const ProfilePage = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   required
                 />
+              </div>
+
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={editForm.username}
+                    onChange={handleInputChange}
+                    className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    required
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Your profile will be accessible at sparrow.com/@{editForm.username}</p>
               </div>
 
               <div>

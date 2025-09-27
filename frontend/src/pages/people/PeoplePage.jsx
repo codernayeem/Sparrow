@@ -146,7 +146,8 @@ const PeoplePage = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-gray-900 truncate">{user.fullName}</h4>
-                      <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                      <p className="text-sm text-blue-600 truncate">@{user.username}</p>
+                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
                     </div>
                   </div>
                   
@@ -155,7 +156,7 @@ const PeoplePage = () => {
                   )}
                   
                   <button
-                    onClick={() => navigate(`/profile/${user.email}`)}
+                    onClick={() => navigate(`/profile/${user.username}`)}
                     className="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                   >
                     View Profile

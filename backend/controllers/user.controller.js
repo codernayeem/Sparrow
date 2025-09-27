@@ -3,9 +3,9 @@ import { v2 as cloudinary } from "cloudinary";
 
 export const getUserProfile = async (req, res) => {
 	try {
-		const { email } = req.params;
+		const { username } = req.params;
 
-		const user = await User.findOne({ email }).select("-password");
+		const user = await User.findOne({ username }).select("-password");
 		if (!user) {
 			return res.status(404).json({ error: "User not found" });
 		}
@@ -19,7 +19,7 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
 	try {
-		const { fullName, email, bio, location, website } = req.body;
+		const { fullName, username, email, bio, location, website } = req.body;
 		const userId = req.user._id;
 
 		let user = await User.findById(userId);
@@ -35,8 +35,17 @@ export const updateUserProfile = async (req, res) => {
 			}
 		}
 
+		// Check if new username is already taken by another user
+		if (username && username !== user.username) {
+			const existingUser = await User.findOne({ username: username.toLowerCase() });
+			if (existingUser && existingUser._id.toString() !== userId.toString()) {
+				return res.status(400).json({ error: "Username is already taken" });
+			}
+		}
+
 		// Update fields
 		if (fullName) user.fullName = fullName;
+		if (username) user.username = username.toLowerCase();
 		if (email) user.email = email;
 		if (bio !== undefined) user.bio = bio; // Allow empty string
 		if (location !== undefined) user.location = location;
@@ -116,6 +125,7 @@ export const searchUsers = async (req, res) => {
 				{
 					$or: [
 						{ fullName: { $regex: q, $options: "i" } },
+						{ username: { $regex: q, $options: "i" } },
 						{ email: { $regex: q, $options: "i" } }
 					]
 				}
@@ -189,6 +199,79 @@ export const getSuggestedUsers = async (req, res) => {
 		res.status(200).json(suggestedUsers);
 	} catch (error) {
 		console.log("Error in getSuggestedUsers controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const checkUsernameAvailability = async (req, res) => {
+	try {
+		const { username } = req.body;
+
+		if (!username) {
+			return res.status(400).json({ error: "Username is required" });
+		}
+
+		// Validate username format
+		const usernameRegex = /^[a-zA-Z0-9_]+$/;
+		if (!usernameRegex.test(username)) {
+			return res.status(400).json({ error: "Username can only contain letters, numbers, and underscores" });
+		}
+
+		if (username.length < 3 || username.length > 20) {
+			return res.status(400).json({ error: "Username must be between 3 and 20 characters" });
+		}
+
+		const existingUser = await User.findOne({ username: username.toLowerCase() });
+		const isAvailable = !existingUser;
+
+		res.status(200).json({ available: isAvailable });
+	} catch (error) {
+		console.log("Error in checkUsernameAvailability controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const generateUsernamesSuggestion = async (req, res) => {
+	try {
+		const { fullName } = req.body;
+
+		if (!fullName) {
+			return res.status(400).json({ error: "Full name is required" });
+		}
+
+		// Generate base username from full name
+		const baseUsername = fullName
+			.toLowerCase()
+			.replace(/[^a-zA-Z0-9]/g, "")
+			.substring(0, 15);
+
+		const suggestions = [];
+
+		// First suggestion: clean name
+		suggestions.push(baseUsername);
+
+		// Add variations with numbers
+		for (let i = 1; i <= 5; i++) {
+			const randomNum = Math.floor(Math.random() * 1000);
+			suggestions.push(`${baseUsername}${randomNum}`);
+			suggestions.push(`${baseUsername}_${randomNum}`);
+		}
+
+		// Check availability for each suggestion
+		const availableSuggestions = [];
+		for (const suggestion of suggestions) {
+			if (suggestion.length >= 3 && suggestion.length <= 20) {
+				const existingUser = await User.findOne({ username: suggestion });
+				if (!existingUser) {
+					availableSuggestions.push(suggestion);
+					if (availableSuggestions.length >= 3) break;
+				}
+			}
+		}
+
+		res.status(200).json({ suggestions: availableSuggestions });
+	} catch (error) {
+		console.log("Error in generateUsernamesSuggestion controller", error.message);
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
