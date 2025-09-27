@@ -22,10 +22,24 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	coverImg: {
+		type: String,
+		default: "",
+	},
 	bio: {
 		type: String,
 		default: "",
 		maxLength: 160,
+	},
+	location: {
+		type: String,
+		default: "",
+		maxLength: 50,
+	},
+	website: {
+		type: String,
+		default: "",
+		maxLength: 100,
 	},
 	followers: [
 		{

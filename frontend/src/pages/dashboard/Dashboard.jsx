@@ -63,14 +63,17 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => navigate('/profile')}
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-blue-600 font-medium text-sm">
                     {user?.fullName?.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <span className="text-gray-700 font-medium">{user?.fullName}</span>
-              </div>
+              </button>
               
               <button
                 onClick={handleLogout}
@@ -106,7 +109,10 @@ const Dashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
             </div>
             <p className="text-gray-600 mb-4">Complete your profile and customize your presence on Sparrow.</p>
-            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              onClick={() => navigate('/profile')}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Edit Profile
             </button>
           </div>
@@ -121,7 +127,10 @@ const Dashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Connect</h3>
             </div>
             <p className="text-gray-600 mb-4">Find and follow interesting people to build your network.</p>
-            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+            <button 
+              onClick={() => navigate('/people')}
+              className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+            >
               Find People
             </button>
           </div>

@@ -6,6 +6,7 @@ import connectMongoDB from "./db/connectMongoDB.js";
 import { v2 as cloudinary } from "cloudinary";
 
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 // Load environment variables from .env file
 config();
@@ -30,6 +31,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 // test route
 app.get("/test", (req, res) => {
