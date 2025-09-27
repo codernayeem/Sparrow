@@ -5,6 +5,8 @@ import cookieParser from "cookie-parser";
 import connectMongoDB from "./db/connectMongoDB.js";
 import { v2 as cloudinary } from "cloudinary";
 
+import authRoutes from "./routes/auth.routes.js";
+
 // Load environment variables from .env file
 config();
 
@@ -25,6 +27,9 @@ app.use(express.json({ limit: "5mb" })); // to parse req.body
 app.use(express.urlencoded({ extended: true })); // to parse form data(urlencoded)
 app.use(cookieParser());
 
+
+// Routes
+app.use("/api/auth", authRoutes);
 
 // test route
 app.get("/test", (req, res) => {
