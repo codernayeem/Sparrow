@@ -4,10 +4,10 @@ import { generateTokenAndSetCookie } from "../lib/utils/generateToken.js";
 
 export const signup = async (req, res) => {
 	try {
-		const { fullName, email, password } = req.body;
+		const { fullName, email, username, password } = req.body;
 
 		// Validate input
-		if (!fullName || !email || !password) {
+		if (!fullName || !email || !username || !password) {
 			return res.status(400).json({ error: "All fields are required" });
 		}
 
@@ -17,15 +17,30 @@ export const signup = async (req, res) => {
 			return res.status(400).json({ error: "Invalid email format" });
 		}
 
+		// Username validation
+		const usernameRegex = /^[a-zA-Z0-9_]+$/;
+		if (!usernameRegex.test(username)) {
+			return res.status(400).json({ error: "Username can only contain letters, numbers, and underscores" });
+		}
+		if (username.length < 3 || username.length > 20) {
+			return res.status(400).json({ error: "Username must be between 3 and 20 characters" });
+		}
+
 		// Password validation
 		if (password.length < 6) {
 			return res.status(400).json({ error: "Password must be at least 6 characters long" });
 		}
 
 		// Check if user already exists
-		const existingUser = await User.findOne({ email });
+		const existingUser = await User.findOne({ 
+			$or: [{ email }, { username: username.toLowerCase() }]
+		});
 		if (existingUser) {
-			return res.status(400).json({ error: "Email already registered" });
+			if (existingUser.email === email) {
+				return res.status(400).json({ error: "Email already registered" });
+			} else {
+				return res.status(400).json({ error: "Username already taken" });
+			}
 		}
 
 		// Hash password
@@ -36,6 +51,7 @@ export const signup = async (req, res) => {
 		const newUser = new User({
 			fullName,
 			email,
+			username: username.toLowerCase(),
 			password: hashedPassword,
 		});
 
@@ -48,6 +64,7 @@ export const signup = async (req, res) => {
 				_id: newUser._id,
 				fullName: newUser.fullName,
 				email: newUser.email,
+				username: newUser.username,
 				profileImg: newUser.profileImg,
 				bio: newUser.bio,
 				followers: newUser.followers,
@@ -78,6 +95,7 @@ export const login = async (req, res) => {
 			_id: user._id,
 			fullName: user.fullName,
 			email: user.email,
+			username: user.username,
 			profileImg: user.profileImg,
 			bio: user.bio,
 			followers: user.followers,

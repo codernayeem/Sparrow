@@ -13,6 +13,16 @@ const userSchema = new mongoose.Schema({
 		lowercase: true,
 		trim: true,
 	},
+	username: {
+		type: String,
+		required: true,
+		unique: true,
+		lowercase: true,
+		trim: true,
+		minLength: 3,
+		maxLength: 20,
+		match: /^[a-zA-Z0-9_]+$/,
+	},
 	password: {
 		type: String,
 		required: true,
@@ -22,10 +32,24 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		default: "",
 	},
+	coverImg: {
+		type: String,
+		default: "",
+	},
 	bio: {
 		type: String,
 		default: "",
 		maxLength: 160,
+	},
+	location: {
+		type: String,
+		default: "",
+		maxLength: 50,
+	},
+	website: {
+		type: String,
+		default: "",
+		maxLength: 100,
 	},
 	followers: [
 		{
