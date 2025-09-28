@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import CreatePost from "../createpost/CreatePost.jsx";
 
 const Dashboard = () => {
+  const [showModal, setShowModal] = useState(false);
+
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -9,17 +12,17 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch("/api/auth/me");
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
         } else {
           // User not authenticated, redirect to home
-          navigate('/');
+          navigate("/");
         }
       } catch (error) {
-        console.error('Error fetching user:', error);
-        navigate('/');
+        console.error("Error fetching user:", error);
+        navigate("/");
       } finally {
         setIsLoading(false);
       }
@@ -30,12 +33,12 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
+      await fetch("/api/auth/logout", {
+        method: "POST",
       });
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
@@ -54,17 +57,17 @@ const Dashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <img 
-                src="/logo.png" 
-                alt="Sparrow Logo" 
+              <img
+                src="/logo.png"
+                alt="Sparrow Logo"
                 className="w-8 h-8 mr-3"
               />
               <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate('/profile')}
+              <button
+                onClick={() => navigate("/profile")}
                 className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -72,9 +75,11 @@ const Dashboard = () => {
                     {user?.fullName?.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="text-gray-700 font-medium">{user?.fullName}</span>
+                <span className="text-gray-700 font-medium">
+                  {user?.fullName}
+                </span>
               </button>
-              
+
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -93,7 +98,8 @@ const Dashboard = () => {
             Welcome to your Dashboard, {user?.fullName}!
           </h2>
           <p className="text-gray-600">
-            You've successfully created your Sparrow account. Start exploring and sharing your thoughts.
+            You've successfully created your Sparrow account. Start exploring
+            and sharing your thoughts.
           </p>
         </div>
 
@@ -102,15 +108,27 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
             </div>
-            <p className="text-gray-600 mb-4">Complete your profile and customize your presence on Sparrow.</p>
-            <button 
-              onClick={() => navigate('/profile')}
+            <p className="text-gray-600 mb-4">
+              Complete your profile and customize your presence on Sparrow.
+            </p>
+            <button
+              onClick={() => navigate("/profile")}
               className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Edit Profile
@@ -120,15 +138,27 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-1.5H15V13.5a1.5 1.5 0 00-3 0v3.75m7.5-3a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" />
+                <svg
+                  className="w-5 h-5 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-1.5H15V13.5a1.5 1.5 0 00-3 0v3.75m7.5-3a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Connect</h3>
             </div>
-            <p className="text-gray-600 mb-4">Find and follow interesting people to build your network.</p>
-            <button 
-              onClick={() => navigate('/people')}
+            <p className="text-gray-600 mb-4">
+              Find and follow interesting people to build your network.
+            </p>
+            <button
+              onClick={() => navigate("/people")}
               className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
             >
               Find People
@@ -138,14 +168,32 @@ const Dashboard = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg
+                  className="w-5 h-5 text-purple-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Create</h3>
             </div>
-            <p className="text-gray-600 mb-4">Share your thoughts and engage with the Sparrow community.</p>
-            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+            <p className="text-gray-600 mb-4">
+              Share your thoughts and engage with the Sparrow community.
+            </p>
+            {/* <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+              Create Post
+            </button> */}
+            <button
+              onClick={() => setShowModal(true)}
+              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+            >
               Create Post
             </button>
           </div>
@@ -153,24 +201,36 @@ const Dashboard = () => {
 
         {/* Account Info */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Account Information</h3>
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            Account Information
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
               <p className="text-gray-900">{user?.fullName}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
               <p className="text-gray-900">{user?.email}</p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Member Since
+              </label>
               <p className="text-gray-900">
-                {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Today'}
+                {user?.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString()
+                  : "Today"}
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Account Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Account Status
+              </label>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                 Active
               </span>
@@ -182,25 +242,72 @@ const Dashboard = () => {
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-lg font-medium text-blue-900">Welcome to Sparrow!</h3>
+              <h3 className="text-lg font-medium text-blue-900">
+                Welcome to Sparrow!
+              </h3>
               <p className="mt-1 text-blue-700">
-                Your account has been successfully created. You can now start exploring the platform, 
-                connect with other users, and share your thoughts with the community.
+                Your account has been successfully created. You can now start
+                exploring the platform, connect with other users, and share your
+                thoughts with the community.
               </p>
               <div className="mt-3">
                 <p className="text-sm text-blue-600">
-                  Next steps: Complete your profile, find interesting people to follow, and create your first post!
+                  Next steps: Complete your profile, find interesting people to
+                  follow, and create your first post!
                 </p>
               </div>
             </div>
           </div>
         </div>
       </main>
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <CreatePost onPostCreated={() => setShowModal(false)} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
