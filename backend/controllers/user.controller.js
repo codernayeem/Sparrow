@@ -453,10 +453,9 @@ export const getMutualFollowers = async (req, res) => {
 		}
 
 		// Find mutual connections (people both users follow)
+		const followerIdSet = new Set(targetUser.followers.map(followerId => followerId.toString()));
 		const mutualFollowing = currentUser.following.filter(followingId =>
-			targetUser.followers.some(followerId => 
-				followerId.toString() === followingId.toString()
-			)
+			followerIdSet.has(followingId.toString())
 		);
 
 		const mutualUsers = await User.find({
