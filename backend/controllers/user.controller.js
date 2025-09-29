@@ -178,25 +178,109 @@ export const getSuggestedUsers = async (req, res) => {
 	try {
 		const userId = req.user._id;
 
-		const usersFollowedByMe = await User.findById(userId).select("following");
+		// Get current user with following list
+		const currentUser = await User.findById(userId).select("following");
+		const followingIds = currentUser.following.map(id => id.toString());
 
-		const users = await User.aggregate([
+		// Find users that are followed by people I follow (friends of friends)
+		const friendsOfFriends = await User.aggregate([
 			{
 				$match: {
-					_id: { $ne: userId },
-				},
+					_id: { $in: currentUser.following }
+				}
 			},
 			{
-				$sample: { size: 10 },
+				$unwind: "$following"
 			},
+			{
+				$match: {
+					"following": { 
+						$ne: userId,
+						$nin: currentUser.following
+					}
+				}
+			},
+			{
+				$group: {
+					_id: "$following",
+					mutualCount: { $sum: 1 },
+					mutualFriends: { $push: "$_id" }
+				}
+			},
+			{
+				$lookup: {
+					from: "users",
+					localField: "_id",
+					foreignField: "_id",
+					as: "user"
+				}
+			},
+			{
+				$unwind: "$user"
+			},
+			{
+				$project: {
+					_id: "$user._id",
+					fullName: "$user.fullName",
+					username: "$user.username",
+					profileImg: "$user.profileImg",
+					bio: "$user.bio",
+					location: "$user.location",
+					followers: "$user.followers",
+					following: "$user.following",
+					mutualCount: 1,
+					mutualFriends: 1
+				}
+			},
+			{
+				$sort: { mutualCount: -1 }
+			},
+			{
+				$limit: 8
+			}
 		]);
 
-		const filteredUsers = users.filter((user) => !usersFollowedByMe.following.includes(user._id));
-		const suggestedUsers = filteredUsers.slice(0, 4);
+		// If we don't have enough friends of friends, get some random popular users
+		let suggestedUsers = friendsOfFriends;
+		
+		if (suggestedUsers.length < 6) {
+			const additionalUsers = await User.aggregate([
+				{
+					$match: {
+						_id: { 
+							$ne: userId,
+							$nin: [...currentUser.following, ...friendsOfFriends.map(u => u._id)]
+						}
+					}
+				},
+				{
+					$addFields: {
+						followersCount: { $size: "$followers" }
+					}
+				},
+				{
+					$sort: { followersCount: -1 }
+				},
+				{
+					$project: {
+						password: 0
+					}
+				},
+				{
+					$limit: 6 - suggestedUsers.length
+				}
+			]);
 
-		suggestedUsers.forEach((user) => (user.password = null));
+			suggestedUsers = [...suggestedUsers, ...additionalUsers];
+		}
 
-		res.status(200).json(suggestedUsers);
+		// Remove password field and limit results
+		const finalSuggestions = suggestedUsers.slice(0, 6).map(user => {
+			const { password, ...userWithoutPassword } = user;
+			return userWithoutPassword;
+		});
+
+		res.status(200).json(finalSuggestions);
 	} catch (error) {
 		console.log("Error in getSuggestedUsers controller", error.message);
 		res.status(500).json({ error: "Internal Server Error" });
@@ -272,6 +356,119 @@ export const generateUsernamesSuggestion = async (req, res) => {
 		res.status(200).json({ suggestions: availableSuggestions });
 	} catch (error) {
 		console.log("Error in generateUsernamesSuggestion controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const getFollowers = async (req, res) => {
+	try {
+		const { userId } = req.params;
+		const { page = 1, limit = 20 } = req.query;
+
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		const followers = await User.find({
+			_id: { $in: user.followers }
+		})
+		.select("-password")
+		.skip((page - 1) * limit)
+		.limit(parseInt(limit))
+		.sort({ createdAt: -1 });
+
+		const totalFollowers = user.followers.length;
+		const totalPages = Math.ceil(totalFollowers / limit);
+
+		res.status(200).json({
+			followers,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages,
+				totalFollowers,
+				hasNext: page < totalPages,
+				hasPrev: page > 1
+			}
+		});
+	} catch (error) {
+		console.log("Error in getFollowers controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const getFollowing = async (req, res) => {
+	try {
+		const { userId } = req.params;
+		const { page = 1, limit = 20 } = req.query;
+
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		const following = await User.find({
+			_id: { $in: user.following }
+		})
+		.select("-password")
+		.skip((page - 1) * limit)
+		.limit(parseInt(limit))
+		.sort({ createdAt: -1 });
+
+		const totalFollowing = user.following.length;
+		const totalPages = Math.ceil(totalFollowing / limit);
+
+		res.status(200).json({
+			following,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages,
+				totalFollowing,
+				hasNext: page < totalPages,
+				hasPrev: page > 1
+			}
+		});
+	} catch (error) {
+		console.log("Error in getFollowing controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+export const getMutualFollowers = async (req, res) => {
+	try {
+		const { userId } = req.params;
+		const currentUserId = req.user._id;
+
+		if (userId === currentUserId.toString()) {
+			return res.status(400).json({ error: "Cannot get mutual followers with yourself" });
+		}
+
+		const [currentUser, targetUser] = await Promise.all([
+			User.findById(currentUserId).select("following"),
+			User.findById(userId).select("followers")
+		]);
+
+		if (!targetUser) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		// Find mutual connections (people both users follow)
+		const mutualFollowing = currentUser.following.filter(followingId =>
+			targetUser.followers.some(followerId => 
+				followerId.toString() === followingId.toString()
+			)
+		);
+
+		const mutualUsers = await User.find({
+			_id: { $in: mutualFollowing }
+		}).select("-password").limit(10);
+
+		res.status(200).json({
+			mutualFollowers: mutualUsers,
+			count: mutualUsers.length
+		});
+	} catch (error) {
+		console.log("Error in getMutualFollowers controller", error.message);
 		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
