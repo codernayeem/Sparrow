@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import FollowButton from '../../components/common/FollowButton';
+import FollowersModal from '../../components/common/FollowersModal';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -10,6 +12,10 @@ const ProfilePage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
+  const [mutualFollowers, setMutualFollowers] = useState([]);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   const [editForm, setEditForm] = useState({
     fullName: '',
@@ -74,6 +80,12 @@ const ProfilePage = () => {
                 location: userData.location || '',
                 website: userData.website || ''
               });
+            } else {
+              // Check if current user is following this user
+              setIsFollowing(userData.followers?.includes(currentUser._id) || false);
+              
+              // Fetch mutual followers if viewing another user's profile
+              fetchMutualFollowers(userData._id);
             }
           } else {
             setError('User not found');
@@ -190,6 +202,29 @@ const ProfilePage = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const fetchMutualFollowers = async (userId) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/mutual`);
+      if (response.ok) {
+        const data = await response.json();
+        setMutualFollowers(data.mutualFollowers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching mutual followers:', error);
+    }
+  };
+
+  const handleFollowChange = (userId, newIsFollowing) => {
+    setIsFollowing(newIsFollowing);
+    // Update the user's followers count in real-time
+    setUser(prevUser => ({
+      ...prevUser,
+      followers: newIsFollowing 
+        ? [...(prevUser.followers || []), currentUser._id]
+        : (prevUser.followers || []).filter(id => id !== currentUser._id)
+    }));
   };
 
   const isOwnProfile = currentUser && user && currentUser._id === user._id;
@@ -359,10 +394,32 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 
-                {/* Edit Button (only for own profile) */}
-                {isOwnProfile && (
-                  <div className="mt-4 sm:mt-0">
-                    {!isEditing ? (
+                {/* Action Buttons */}
+                <div className="mt-4 sm:mt-0 flex flex-col space-y-3">
+                  {/* Mutual Followers (if viewing another user's profile) */}
+                  {!isOwnProfile && mutualFollowers.length > 0 && (
+                    <div className="text-sm text-gray-600">
+                      Followed by{' '}
+                      {mutualFollowers.slice(0, 2).map((mutual, index) => (
+                        <span key={mutual._id}>
+                          <span className="font-medium text-gray-900">{mutual.fullName}</span>
+                          {index < Math.min(mutualFollowers.length, 2) - 1 && ', '}
+                        </span>
+                      ))}
+                      {mutualFollowers.length > 2 && ` and ${mutualFollowers.length - 2} others you follow`}
+                    </div>
+                  )}
+
+                  {/* Follow Button (for other users) or Edit Button (for own profile) */}
+                  {!isOwnProfile ? (
+                    <FollowButton
+                      userId={user._id}
+                      isFollowing={isFollowing}
+                      onFollowChange={handleFollowChange}
+                      size="default"
+                    />
+                  ) : (
+                    !isEditing ? (
                       <button
                         onClick={() => setIsEditing(true)}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
@@ -396,22 +453,28 @@ const ProfilePage = () => {
                           {isSaving ? 'Saving...' : 'Save'}
                         </button>
                       </div>
-                    )}
-                  </div>
-                )}
+                    )
+                  )}
+                </div>
               </div>
 
               {/* Stats */}
               <div className="flex space-x-6 mt-4">
-                <div className="text-center">
+                <button
+                  onClick={() => setFollowingModalOpen(true)}
+                  className="text-center hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                >
                   <div className="text-xl font-bold text-gray-900">{user.following?.length || 0}</div>
                   <div className="text-sm text-gray-600">Following</div>
-                </div>
-                <div className="text-center">
+                </button>
+                <button
+                  onClick={() => setFollowersModalOpen(true)}
+                  className="text-center hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                >
                   <div className="text-xl font-bold text-gray-900">{user.followers?.length || 0}</div>
                   <div className="text-sm text-gray-600">Followers</div>
-                </div>
-                <div className="text-center">
+                </button>
+                <div className="text-center p-2">
                   <div className="text-xl font-bold text-gray-900">{user.likedPosts?.length || 0}</div>
                   <div className="text-sm text-gray-600">Liked Posts</div>
                 </div>
@@ -640,6 +703,24 @@ const ProfilePage = () => {
           </div>
         )}
       </main>
+
+      {/* Followers Modal */}
+      <FollowersModal
+        isOpen={followersModalOpen}
+        onClose={() => setFollowersModalOpen(false)}
+        userId={user._id}
+        type="followers"
+        currentUserId={currentUser?._id}
+      />
+
+      {/* Following Modal */}
+      <FollowersModal
+        isOpen={followingModalOpen}
+        onClose={() => setFollowingModalOpen(false)}
+        userId={user._id}
+        type="following"
+        currentUserId={currentUser?._id}
+      />
     </div>
   );
 };
