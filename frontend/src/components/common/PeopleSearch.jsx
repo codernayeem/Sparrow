@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import UserCard from './UserCard';
 
-const PeopleSearch = () => {
+const PeopleSearch = ({ currentUserId }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleSearch = async (searchQuery) => {
     if (!searchQuery.trim()) {
@@ -67,44 +66,17 @@ const PeopleSearch = () => {
 
       {/* Results */}
       {results.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 divide-y divide-gray-200">
-          {results.map((user) => (
-            <div key={user._id} className="p-4 hover:bg-gray-50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                    {user.profileImg ? (
-                      <img 
-                        src={user.profileImg} 
-                        alt={user.fullName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-blue-100">
-                        <span className="text-blue-600 font-medium">
-                          {user.fullName.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{user.fullName}</h3>
-                    <p className="text-sm text-blue-600">@{user.username}</p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                    {user.bio && (
-                      <p className="text-sm text-gray-500 mt-1 truncate max-w-xs">{user.bio}</p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => navigate(`/profile/${user.username}`)}
-                  className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  View Profile
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="space-y-4">
+            {results.map((user) => (
+              <UserCard
+                key={user._id}
+                user={user}
+                currentUserId={currentUserId}
+                showFollowButton={true}
+              />
+            ))}
+          </div>
         </div>
       )}
 

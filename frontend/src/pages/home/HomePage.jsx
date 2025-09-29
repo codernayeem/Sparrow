@@ -11,10 +11,34 @@ const HomePage = () => {
   // Image carousel state
   const images = [photo1, photo2, photo3, photo4];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          // User is authenticated, redirect to dashboard
+          navigate('/dashboard');
+        } else {
+          // User is not authenticated, show home page
+          setIsCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [navigate]);
 
   // Auto-rotate images every 10 seconds
   useEffect(() => {
+    if (isCheckingAuth) return; // Don't start carousel if still checking auth
+
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => 
         prevIndex === images.length - 1 ? 0 : prevIndex + 1
@@ -22,7 +46,7 @@ const HomePage = () => {
     }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
-  }, [images.length]);
+  }, [images.length, isCheckingAuth]);
 
   // Navigation functions
   const goToPreviousImage = () => {
@@ -53,6 +77,18 @@ const HomePage = () => {
   const handleSignUp = () => {
     navigate('/signup');
   };
+
+  // Show loading spinner while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

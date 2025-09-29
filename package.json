@@ -5,10 +5,11 @@
   "private": true,
   "main": "backend/server.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon backend/server.js",
-    "start": "cross-env NODE_ENV=production node backend/server.js",
-    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
-  },
+		"dev": "cross-env NODE_ENV=development nodemon backend/server.js",
+		"start": "cross-env NODE_ENV=production node backend/server.js",
+		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
+		"seed-users": "node backend/scripts/seedUsers.js"
+	},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codernayeem/Sparrow.git"

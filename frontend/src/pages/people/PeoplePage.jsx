@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PeopleSearch from '../../components/common/PeopleSearch';
+import UserCard from '../../components/common/UserCard';
 
 const PeoplePage = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -118,50 +119,25 @@ const PeoplePage = () => {
         {/* Search Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Search People</h3>
-          <PeopleSearch />
+          <PeopleSearch currentUserId={currentUser?._id} />
         </div>
 
         {/* Suggested Users */}
         {suggestedUsers.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Suggested for you</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Suggested for you</h3>
+              <span className="text-sm text-gray-500">Based on your network</span>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
               {suggestedUsers.map((user) => (
-                <div key={user._id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-                      {user.profileImg ? (
-                        <img 
-                          src={user.profileImg} 
-                          alt={user.fullName}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-blue-100">
-                          <span className="text-blue-600 font-medium">
-                            {user.fullName.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">{user.fullName}</h4>
-                      <p className="text-sm text-blue-600 truncate">@{user.username}</p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  
-                  {user.bio && (
-                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">{user.bio}</p>
-                  )}
-                  
-                  <button
-                    onClick={() => navigate(`/profile/${user.username}`)}
-                    className="w-full px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                  >
-                    View Profile
-                  </button>
-                </div>
+                <UserCard
+                  key={user._id}
+                  user={user}
+                  currentUserId={currentUser?._id}
+                  showFollowButton={true}
+                  showMutualInfo={true}
+                />
               ))}
             </div>
           </div>
