@@ -16,7 +16,9 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
   const fetchUserPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/posts/user/${userId}`);
+      const response = await fetch(`/api/posts/user/${userId}`, {
+        credentials: 'include', // Include cookies for authentication
+      });
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
@@ -40,6 +42,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
       setDeleting(postId);
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -69,6 +72,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ text: editText }),
       });
 
@@ -98,6 +102,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ visibility: newVisibility }),
       });
 

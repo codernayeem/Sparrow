@@ -35,7 +35,9 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch("/api/auth/me");
+        const response = await fetch("/api/auth/me", {
+          credentials: 'include',
+        });
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser(userData);
@@ -68,7 +70,9 @@ const ProfilePage = () => {
     const fetchUserProfile = async () => {
       if (username && currentUser) {
         try {
-          const response = await fetch(`/api/users/profile/${username}`);
+          const response = await fetch(`/api/users/profile/${username}`, {
+            credentials: 'include',
+          });
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
@@ -128,6 +132,7 @@ const ProfilePage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify(editForm),
       });
 
@@ -171,6 +176,7 @@ const ProfilePage = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           body: JSON.stringify({
             profileImg: reader.result,
           }),
@@ -200,6 +206,7 @@ const ProfilePage = () => {
     try {
       await fetch("/api/auth/logout", {
         method: "POST",
+        credentials: 'include',
       });
       navigate("/");
     } catch (error) {
@@ -209,7 +216,9 @@ const ProfilePage = () => {
 
   const fetchMutualFollowers = async (userId) => {
     try {
-      const response = await fetch(`/api/users/${userId}/mutual`);
+      const response = await fetch(`/api/users/${userId}/mutual`, {
+        credentials: 'include',
+      });
       if (response.ok) {
         const data = await response.json();
         setMutualFollowers(data.mutualFollowers || []);
