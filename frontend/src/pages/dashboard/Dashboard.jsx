@@ -6,10 +6,40 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
 
   const [user, setUser] = useState(null);
-  const [posts, setPosts] = useState([]);  
+  const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true); 
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+
+const fetchPosts = async (pageNumber = 1) => {
+  if (isLoadingPosts) return; // Prevent concurrent requests
+  
+  setIsLoadingPosts(true);
+  try {
+    const res = await fetch(`/api/posts/all?page=${pageNumber}&limit=4`);
+    if (res.ok) {
+      const data = await res.json();
+
+      setPosts((prev) =>
+        pageNumber === 1 ? data.posts : [...prev, ...data.posts]
+      );
+
+      setHasMore(pageNumber < data.totalPages);
+    } else {
+      console.error("Failed to fetch posts:", res.statusText);
+    }
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+  } finally {
+    setIsLoadingPosts(false);
+  }
+};
+
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,21 +59,33 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch("/api/posts/all"); // <-- your backend route
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data); // <-- update state
-        }
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      }
-    };
-
+   
     fetchUser();
-    fetchPosts();
+    fetchPosts(1);
   }, [navigate]);
+
+  useEffect(() => {
+    if (!hasMore || isLoadingPosts) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingPosts) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1 }
+    );
+
+    const loader = document.getElementById("infinite-loader");
+    if (loader) observer.observe(loader);
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingPosts]);
+useEffect(() => {
+  if (page === 1) return; // already fetched on mount
+  fetchPosts(page);
+}, [page]);
+
 
   const handleLogout = async () => {
     try {
@@ -303,6 +345,18 @@ const Dashboard = () => {
               </div>
             ))
           )}
+          {hasMore && (
+            <div
+              id="infinite-loader"
+              className="h-10 flex items-center justify-center"
+            >
+              {isLoadingPosts ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              ) : (
+                <p className="text-gray-500">Loading more...</p>
+              )}
+            </div>
+          )}
         </div>
       </main>
       {showModal && (
@@ -333,7 +387,15 @@ const Dashboard = () => {
 
             {/* Modal Content */}
             <div className="p-6">
-              <CreatePost onPostCreated={() => setShowModal(false)} />
+              <CreatePost 
+                onPostCreated={() => {
+                  setShowModal(false);
+                  // Refresh posts to show the new one
+                  fetchPosts(1);
+                  setPage(1);
+                  setHasMore(true);
+                }} 
+              />
             </div>
           </div>
         </div>

@@ -196,8 +196,14 @@ export const updatePostVisibility = async (req, res) => {
 
 export const getAllPosts = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1; // page number from frontend
+    const limit = parseInt(req.query.limit) || 4; // how many posts per page
+    const skip = (page - 1) * limit;
+
     const posts = await Post.find()
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "user",
         select: "-password",
@@ -207,12 +213,17 @@ export const getAllPosts = async (req, res) => {
         select: "-password",
       });
 
-    if (posts.length === 0) {
-      return res.status(200).json([]);
-    }
-    res.status(200).json(posts);
+    const totalPosts = await Post.countDocuments();
+
+    res.status(200).json({
+      posts,
+      totalPosts,
+      totalPages: Math.ceil(totalPosts / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.log("Error in get all posts controller:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
