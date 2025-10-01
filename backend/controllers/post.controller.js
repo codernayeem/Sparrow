@@ -42,3 +42,154 @@ export const createPost = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getUserPosts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user._id.toString();
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    let posts;
+    
+    // If viewing own profile, show all posts
+    if (userId === currentUserId) {
+      posts = await Post.find({ user: userId })
+        .populate({
+          path: "user",
+          select: "-password"
+        })
+        .populate({
+          path: "comments.user",
+          select: "-password"
+        })
+        .sort({ createdAt: -1 });
+    } else {
+      // If viewing another user's profile, only show public posts and posts visible to followers if following
+      const isFollowing = user.followers.includes(currentUserId);
+      const visibilityFilter = isFollowing 
+        ? { $in: ["public", "followers"] }
+        : "public";
+      
+      posts = await Post.find({ 
+        user: userId,
+        visibility: visibilityFilter
+      })
+        .populate({
+          path: "user",
+          select: "-password"
+        })
+        .populate({
+          path: "comments.user",
+          select: "-password"
+        })
+        .sort({ createdAt: -1 });
+    }
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.log("Error in getUserPosts controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id.toString();
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Check if user owns the post
+    if (post.user.toString() !== userId) {
+      return res.status(401).json({ error: "You can only delete your own posts" });
+    }
+
+    // Delete image from cloudinary if exists
+    if (post.img) {
+      const imgId = post.img.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(`sparrow/${imgId}`);
+    }
+
+    await Post.findByIdAndDelete(id);
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.log("Error in deletePost controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updatePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const userId = req.user._id.toString();
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Check if user owns the post
+    if (post.user.toString() !== userId) {
+      return res.status(401).json({ error: "You can only edit your own posts" });
+    }
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ error: "Post text cannot be empty" });
+    }
+
+    post.text = text;
+    await post.save();
+
+    const updatedPost = await Post.findById(id).populate({
+      path: "user",
+      select: "-password"
+    });
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    console.log("Error in updatePost controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updatePostVisibility = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { visibility } = req.body;
+    const userId = req.user._id.toString();
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    // Check if user owns the post
+    if (post.user.toString() !== userId) {
+      return res.status(401).json({ error: "You can only modify your own posts" });
+    }
+
+    // Validate visibility value
+    if (!["public", "followers", "private"].includes(visibility)) {
+      return res.status(400).json({ error: "Invalid visibility value" });
+    }
+
+    post.visibility = visibility;
+    await post.save();
+
+    const updatedPost = await Post.findById(id).populate({
+      path: "user",
+      select: "-password"
+    });
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    console.log("Error in updatePostVisibility controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

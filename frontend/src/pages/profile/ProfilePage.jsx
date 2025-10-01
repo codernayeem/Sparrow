@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FollowButton from '../../components/common/FollowButton';
 import FollowersModal from '../../components/common/FollowersModal';
 import CreatePost from "../createpost/CreatePost.jsx";
+import ProfilePosts from './ProfilePosts';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -34,7 +35,9 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await fetch("/api/auth/me");
+        const response = await fetch("/api/auth/me", {
+          credentials: 'include',
+        });
         if (response.ok) {
           const userData = await response.json();
           setCurrentUser(userData);
@@ -67,7 +70,9 @@ const ProfilePage = () => {
     const fetchUserProfile = async () => {
       if (username && currentUser) {
         try {
-          const response = await fetch(`/api/users/profile/${username}`);
+          const response = await fetch(`/api/users/profile/${username}`, {
+            credentials: 'include',
+          });
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
@@ -127,6 +132,7 @@ const ProfilePage = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify(editForm),
       });
 
@@ -170,6 +176,7 @@ const ProfilePage = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: 'include',
           body: JSON.stringify({
             profileImg: reader.result,
           }),
@@ -199,6 +206,7 @@ const ProfilePage = () => {
     try {
       await fetch("/api/auth/logout", {
         method: "POST",
+        credentials: 'include',
       });
       navigate("/");
     } catch (error) {
@@ -208,7 +216,9 @@ const ProfilePage = () => {
 
   const fetchMutualFollowers = async (userId) => {
     try {
-      const response = await fetch(`/api/users/${userId}/mutual`);
+      const response = await fetch(`/api/users/${userId}/mutual`, {
+        credentials: 'include',
+      });
       if (response.ok) {
         const data = await response.json();
         setMutualFollowers(data.mutualFollowers || []);
@@ -766,7 +776,7 @@ const ProfilePage = () => {
 
         {/* Quick Actions */}
         {isOwnProfile && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Quick Actions
             </h2>
@@ -840,6 +850,21 @@ const ProfilePage = () => {
             </div>
           </div>
         )}
+
+        {/* Posts Section */}
+        <ProfilePosts 
+          userId={user._id} 
+          isOwnProfile={isOwnProfile} 
+          currentUser={currentUser}
+          onPostUpdate={() => {
+            setSuccess("Post updated successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+          }}
+          onPostDelete={() => {
+            setSuccess("Post deleted successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+          }}
+        />
       </main>
 
       {/* Followers Modal */}
