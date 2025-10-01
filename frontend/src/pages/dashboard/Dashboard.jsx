@@ -6,6 +6,8 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
 
   const [user, setUser] = useState(null);
+  const [posts, setPosts] = useState([]);  
+
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -27,8 +29,20 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch("/api/posts/all"); // <-- your backend route
+        if (res.ok) {
+          const data = await res.json();
+          setPosts(data); // <-- update state
+        }
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
 
     fetchUser();
+    fetchPosts();
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -239,40 +253,56 @@ const Dashboard = () => {
         </div>
 
         {/* Welcome Message */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg
-                className="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-lg font-medium text-blue-900">
-                Welcome to Sparrow!
-              </h3>
-              <p className="mt-1 text-blue-700">
-                Your account has been successfully created. You can now start
-                exploring the platform, connect with other users, and share your
-                thoughts with the community.
-              </p>
-              <div className="mt-3">
-                <p className="text-sm text-blue-600">
-                  Next steps: Complete your profile, find interesting people to
-                  follow, and create your first post!
-                </p>
+        {/* Posts Feed */}
+        <div className="mt-8 space-y-6">
+          {posts.length === 0 ? (
+            <p className="text-gray-500">
+              No posts yet. Be the first to share!
+            </p>
+          ) : (
+            posts.map((post) => (
+              <div key={post._id} className="bg-white rounded-lg shadow p-4">
+                {/* Post Header */}
+                <div className="flex items-center mb-2">
+                  <img
+                    src={post.user.profileImg || "/default-avatar.png"}
+                    alt={post.user.fullName}
+                    className="w-10 h-10 rounded-full mr-3"
+                  />
+                  <div>
+                    <p className="font-semibold">{post.user.fullName}</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(post.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Post Content */}
+                {post.text && <p className="mb-2">{post.text}</p>}
+                {post.img && (
+                  <img
+                    src={post.img}
+                    alt="Post"
+                    className="w-full rounded-lg max-h-96 object-cover mb-2"
+                  />
+                )}
+
+                {/* Comments */}
+                {post.comments.length > 0 && (
+                  <div className="mt-2 border-t pt-2 text-sm text-gray-700">
+                    {post.comments.map((c) => (
+                      <p key={c._id}>
+                        <span className="font-semibold">
+                          {c.user.fullName}:
+                        </span>{" "}
+                        {c.text}
+                      </p>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+            ))
+          )}
         </div>
       </main>
       {showModal && (

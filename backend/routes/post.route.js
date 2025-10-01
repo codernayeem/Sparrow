@@ -6,7 +6,8 @@ import {
   getUserPosts, 
   deletePost, 
   updatePost,
-  updatePostVisibility 
+  updatePostVisibility ,
+  getAllPosts
 } from "../controllers/post.controller.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 
@@ -26,7 +27,7 @@ const upload = multer({
   },
 });
 
-// router.get("/all", protectRoute, getAllPosts);
+router.get("/all", protectRoute, getAllPosts);
 // router.get("/following", protectRoute, getFollowingPosts);
 // router.get("/likes/:id", protectRoute, getLikedPosts);
 router.get("/user/:userId", protectRoute, getUserPosts);
