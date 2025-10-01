@@ -20,7 +20,7 @@ const fetchPosts = async (pageNumber = 1) => {
   
   setIsLoadingPosts(true);
   try {
-    const res = await fetch(`/api/posts/all?page=${pageNumber}&limit=4`);
+    const res = await fetch(`/api/posts/dashboard-posts?page=${pageNumber}&limit=4`);
     if (res.ok) {
       const data = await res.json();
 

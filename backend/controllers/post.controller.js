@@ -252,3 +252,58 @@ export const getFollowingPosts = async (req, res) => {
   }
 };
 
+
+
+export const getDashboardPosts = async (req, res) => {
+  try {
+    const currentUserId = req.user._id.toString();
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch user posts
+    const userPosts = await Post.find({ user: currentUserId })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" })
+      .sort({ createdAt: -1 });
+
+    // Fetch following posts
+    const user = await User.findById(currentUserId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const followingPosts = await Post.find({ user: { $in: user.following } })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" })
+      .sort({ createdAt: -1 });
+
+    // Merge posts
+    let allPosts = [...userPosts, ...followingPosts];
+
+    // Remove duplicates (by post ID)
+    const uniquePostsMap = new Map();
+    allPosts.forEach((post) => {
+      uniquePostsMap.set(post._id.toString(), post);
+    });
+    allPosts = Array.from(uniquePostsMap.values());
+
+    // Sort again by createdAt
+    allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Apply pagination
+    const paginatedPosts = allPosts.slice(skip, skip + limit);
+
+    res.status(200).json({
+      posts: paginatedPosts,
+      totalPosts: allPosts.length,
+      totalPages: Math.ceil(allPosts.length / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.log("Error in getDashboardPosts controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+

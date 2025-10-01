@@ -1,13 +1,14 @@
 import express from "express";
 import multer from "multer";
 
-import { 
-  createPost, 
-  getUserPosts, 
-  deletePost, 
+import {
+  createPost,
+  getUserPosts,
+  deletePost,
   updatePost,
-  updatePostVisibility ,
-  getAllPosts
+  updatePostVisibility,
+  getAllPosts,
+  getDashboardPosts,
 } from "../controllers/post.controller.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 
@@ -28,6 +29,7 @@ const upload = multer({
 });
 
 router.get("/all", protectRoute, getAllPosts);
+router.get("/dashboard-posts", protectRoute, getDashboardPosts);
 // router.get("/following", protectRoute, getFollowingPosts);
 // router.get("/likes/:id", protectRoute, getLikedPosts);
 router.get("/user/:userId", protectRoute, getUserPosts);
