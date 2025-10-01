@@ -312,7 +312,12 @@ useEffect(() => {
                     className="w-10 h-10 rounded-full mr-3"
                   />
                   <div>
-                    <p className="font-semibold">{post.user.fullName}</p>
+                    <p className="font-semibold">
+                      {post.user.fullName}{" @"}
+                      <span className="text-sm font-normal text-gray-500">
+                        {post.user.username}
+                      </span>
+                    </p>
                     <p className="text-sm text-gray-500">
                       {new Date(post.createdAt).toLocaleString()}
                     </p>
@@ -387,14 +392,14 @@ useEffect(() => {
 
             {/* Modal Content */}
             <div className="p-6">
-              <CreatePost 
+              <CreatePost
                 onPostCreated={() => {
                   setShowModal(false);
                   // Refresh posts to show the new one
                   fetchPosts(1);
                   setPage(1);
                   setHasMore(true);
-                }} 
+                }}
               />
             </div>
           </div>
