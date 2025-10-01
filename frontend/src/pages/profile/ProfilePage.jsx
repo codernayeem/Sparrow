@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import FollowButton from '../../components/common/FollowButton';
 import FollowersModal from '../../components/common/FollowersModal';
 import CreatePost from "../createpost/CreatePost.jsx";
+import ProfilePosts from './ProfilePosts';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -766,7 +767,7 @@ const ProfilePage = () => {
 
         {/* Quick Actions */}
         {isOwnProfile && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Quick Actions
             </h2>
@@ -840,6 +841,21 @@ const ProfilePage = () => {
             </div>
           </div>
         )}
+
+        {/* Posts Section */}
+        <ProfilePosts 
+          userId={user._id} 
+          isOwnProfile={isOwnProfile} 
+          currentUser={currentUser}
+          onPostUpdate={() => {
+            setSuccess("Post updated successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+          }}
+          onPostDelete={() => {
+            setSuccess("Post deleted successfully!");
+            setTimeout(() => setSuccess(""), 3000);
+          }}
+        />
       </main>
 
       {/* Followers Modal */}
