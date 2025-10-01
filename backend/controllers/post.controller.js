@@ -193,3 +193,117 @@ export const updatePostVisibility = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getAllPosts = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1; // page number from frontend
+    const limit = parseInt(req.query.limit) || 4; // how many posts per page
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    const totalPosts = await Post.countDocuments();
+
+    res.status(200).json({
+      posts,
+      totalPosts,
+      totalPages: Math.ceil(totalPosts / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.log("Error in get all posts controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getFollowingPosts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const following = user.following;
+
+    const feedPosts = await Post.find({ user: { $in: following } })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+    res.status(200).json(feedPosts);
+  } catch (error) {
+    console.log("Error in get following posts controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+export const getDashboardPosts = async (req, res) => {
+  try {
+    const currentUserId = req.user._id.toString();
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Fetch user posts
+    const userPosts = await Post.find({ user: currentUserId })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" })
+      .sort({ createdAt: -1 });
+
+    // Fetch following posts
+    const user = await User.findById(currentUserId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const followingPosts = await Post.find({ user: { $in: user.following } })
+      .populate({ path: "user", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" })
+      .sort({ createdAt: -1 });
+
+    // Merge posts
+    let allPosts = [...userPosts, ...followingPosts];
+
+    // Remove duplicates (by post ID)
+    const uniquePostsMap = new Map();
+    allPosts.forEach((post) => {
+      uniquePostsMap.set(post._id.toString(), post);
+    });
+    allPosts = Array.from(uniquePostsMap.values());
+
+    // Sort again by createdAt
+    allPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Apply pagination
+    const paginatedPosts = allPosts.slice(skip, skip + limit);
+
+    res.status(200).json({
+      posts: paginatedPosts,
+      totalPosts: allPosts.length,
+      totalPages: Math.ceil(allPosts.length / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.log("Error in getDashboardPosts controller:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
