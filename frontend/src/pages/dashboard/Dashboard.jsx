@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CreatePost from "../createpost/CreatePost.jsx";
+import PostFeed from "./PostFeed.jsx";
 
 const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
@@ -148,7 +149,7 @@ useEffect(() => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Welcome to your Dashboard, {user?.fullName}!
@@ -294,75 +295,13 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Welcome Message */}
         {/* Posts Feed */}
-        <div className="mt-8 space-y-6">
-          {posts.length === 0 ? (
-            <p className="text-gray-500">
-              No posts yet. Be the first to share!
-            </p>
-          ) : (
-            posts.map((post) => (
-              <div key={post._id} className="bg-white rounded-lg shadow p-4">
-                {/* Post Header */}
-                <div className="flex items-center mb-2">
-                  <img
-                    src={post.user.profileImg || "/default-avatar.png"}
-                    alt={post.user.fullName}
-                    className="w-10 h-10 rounded-full mr-3"
-                  />
-                  <div>
-                    <p className="font-semibold">
-                      {post.user.fullName}{" @"}
-                      <span className="text-sm font-normal text-gray-500">
-                        {post.user.username}
-                      </span>
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(post.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Content */}
-                {post.text && <p className="mb-2">{post.text}</p>}
-                {post.img && (
-                  <img
-                    src={post.img}
-                    alt="Post"
-                    className="w-full rounded-lg max-h-96 object-cover mb-2"
-                  />
-                )}
-
-                {/* Comments */}
-                {post.comments.length > 0 && (
-                  <div className="mt-2 border-t pt-2 text-sm text-gray-700">
-                    {post.comments.map((c) => (
-                      <p key={c._id}>
-                        <span className="font-semibold">
-                          {c.user.fullName}:
-                        </span>{" "}
-                        {c.text}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-          {hasMore && (
-            <div
-              id="infinite-loader"
-              className="h-10 flex items-center justify-center"
-            >
-              {isLoadingPosts ? (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              ) : (
-                <p className="text-gray-500">Loading more...</p>
-              )}
-            </div>
-          )}
-        </div>
+        <PostFeed
+          posts={posts}
+          hasMore={hasMore}
+          isLoadingPosts={isLoadingPosts}
+          currentUser={user}
+        />
       </main>
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

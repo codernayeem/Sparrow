@@ -43,3 +43,8 @@ bower_components/
 
 # React Native
 .expo/
+
+# remove PostFeed.jsx
+frontend/src/pages/dashboard/PostFeed.jsx
+# remove post.controller.js
+backend/controllers/post.controller.js
