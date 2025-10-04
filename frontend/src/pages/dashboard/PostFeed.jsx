@@ -7,6 +7,9 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
 
 
     const [localPosts, setLocalPosts] = useState(posts);
+    const [commentText, setCommentText] = useState({});
+    const [showComments, setShowComments] = useState({});
+    const [isSubmittingComment, setIsSubmittingComment] = useState({});
 
     useEffect(() => {
       setLocalPosts(posts);
@@ -38,6 +41,48 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
     } catch (err) {
       console.error("Error in like/unlike request:", err);
     }
+  };
+
+  const handleComment = async (postId) => {
+    const text = commentText[postId]?.trim();
+    if (!text) return;
+
+    setIsSubmittingComment(prev => ({ ...prev, [postId]: true }));
+    
+    try {
+      const res = await fetch(`/api/posts/comment/${postId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (res.ok) {
+        const updatedComments = await res.json();
+
+        setLocalPosts((prev) =>
+          prev.map((post) =>
+            post._id === postId ? { ...post, comments: updatedComments } : post
+          )
+        );
+
+        // Clear the comment input
+        setCommentText(prev => ({ ...prev, [postId]: "" }));
+      } else {
+        console.error("Failed to add comment");
+      }
+    } catch (err) {
+      console.error("Error in comment request:", err);
+    } finally {
+      setIsSubmittingComment(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const toggleComments = (postId) => {
+    setShowComments(prev => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleCommentTextChange = (postId, text) => {
+    setCommentText(prev => ({ ...prev, [postId]: text }));
   };
 
 
@@ -85,14 +130,40 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                 {/* Comments */}
                 {post.comments.length > 0 && (
                   <div className="mt-2 border-t pt-2 text-sm text-gray-700">
-                    {post.comments.map((c) => (
-                      <p key={c._id}>
-                        <span className="font-semibold">
-                          {c.user.fullName}:
-                        </span>{" "}
-                        {c.text}
-                      </p>
-                    ))}
+                    {showComments[post._id] ? (
+                      <div className="space-y-2">
+                        {post.comments.map((comment) => (
+                          <div key={comment._id} className="flex space-x-2">
+                            <img
+                              src={comment.user.profileImg || "/default-avatar.png"}
+                              alt={comment.user.fullName}
+                              className="w-6 h-6 rounded-full"
+                            />
+                            <div className="flex-1">
+                              <div className="bg-gray-100 rounded-lg px-3 py-2">
+                                <p className="font-semibold text-xs text-gray-900">
+                                  {comment.user.fullName}
+                                </p>
+                                <p className="text-sm text-gray-800">{comment.text}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => toggleComments(post._id)}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Hide comments
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => toggleComments(post._id)}
+                        className="text-sm text-gray-600 hover:text-gray-800"
+                      >
+                        View all {post.comments.length} comment{post.comments.length !== 1 ? 's' : ''}
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -135,7 +206,10 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                   </button>
 
                   {/* Comment */}
-                  <button className="flex items-center space-x-1 hover:text-green-600 transition-colors">
+                  <button 
+                    onClick={() => toggleComments(post._id)}
+                    className="flex items-center space-x-1 hover:text-green-600 transition-colors"
+                  >
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -169,6 +243,45 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                     </svg>
                     <span>Share</span>
                   </button>
+                </div>
+
+                {/* Comment Input Section */}
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex space-x-2">
+                    <img
+                      src={currentUser?.profileImg || "/default-avatar.png"}
+                      alt={currentUser?.fullName}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <div className="flex-1">
+                      <div className="flex space-x-2">
+                        <input
+                          type="text"
+                          placeholder="Write a comment..."
+                          value={commentText[post._id] || ""}
+                          onChange={(e) => handleCommentTextChange(post._id, e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleComment(post._id);
+                            }
+                          }}
+                          className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                        />
+                        <button
+                          onClick={() => handleComment(post._id)}
+                          disabled={!commentText[post._id]?.trim() || isSubmittingComment[post._id]}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSubmittingComment[post._id] ? (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            "Post"
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             );})
