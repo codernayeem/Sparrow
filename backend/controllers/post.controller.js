@@ -350,4 +350,46 @@ export const likeUnlikePost = async (req, res) => {
   }
 };
 
+export const commentOnPost = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const postId = req.params.id;
+    const userId = req.user._id;
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ error: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const comment = {
+      user: userId,
+      text: text.trim()
+    };
+
+    post.comments.push(comment);
+    await post.save();
+
+    // Populate the newly added comment with user details
+    const updatedPost = await Post.findById(postId)
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    // Return the updated comments array
+    res.status(200).json(updatedPost.comments);
+  } catch (error) {
+    console.log("Error in commentOnPost controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 
