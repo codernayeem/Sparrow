@@ -179,6 +179,29 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
       });
     }
   };
+  const handleLike = async (postId) => {
+    try {
+      const res = await fetch(`/api/posts/like/${postId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const updatedLikes = await res.json();
+        setPosts((prev) =>
+          prev.map((post) =>
+            post._id === postId ? { ...post, likes: updatedLikes } : post
+          )
+        );
+      } else {
+        console.error("Failed to like/unlike post");
+      }
+    } catch (err) {
+      console.error("Error in like/unlike request:", err);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -242,168 +265,252 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
         </div>
       ) : (
         <div className="space-y-4">
-          {posts.map((post) => (
-            <div key={post._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-              {/* Post Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
-                    {post.user?.profileImg ? (
-                      <img
-                        src={post.user.profileImg}
-                        alt={`${post.user.fullName}'s profile`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-blue-100">
-                        <span className="text-blue-600 font-medium text-sm">
-                          {post.user?.fullName?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{post.user?.fullName}</p>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <span>@{post.user?.username}</span>
-                      <span>•</span>
-                      <span>{formatDate(post.createdAt)}</span>
-                      <span>•</span>
-                      <div className="flex items-center space-x-1">
-                        {getVisibilityIcon(post.visibility || 'public')}
-                        <span>{getVisibilityLabel(post.visibility || 'public')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {posts.map((post) => {
+            const isLiked = (post) => post.likes?.includes(currentUser?._id);
 
-                {/* Actions Menu (only for own posts) */}
-                {isOwnProfile && (
-                  <div className="flex items-center space-x-2">
-                    {/* Visibility Dropdown */}
-                    <div className="relative">
-                      <select
-                        value={post.visibility || 'public'}
-                        onChange={(e) => handleVisibilityChange(post._id, e.target.value)}
-                        disabled={visibilityChanging === post._id}
-                        className="text-xs bg-white border border-gray-300 rounded px-2 py-1 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="public">Public</option>
-                        <option value="followers">Followers only</option>
-                        <option value="private">Private</option>
-                      </select>
-                      {visibilityChanging === post._id && (
-                        <div className="absolute right-0 top-0 mt-1 mr-1">
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+            return (
+              <div
+                key={post._id}
+                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+              >
+                {/* Post Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                      {post.user?.profileImg ? (
+                        <img
+                          src={post.user.profileImg}
+                          alt={`${post.user.fullName}'s profile`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                          <span className="text-blue-600 font-medium text-sm">
+                            {post.user?.fullName?.charAt(0).toUpperCase()}
+                          </span>
                         </div>
                       )}
                     </div>
-
-                    {/* Edit Button */}
-                    <button
-                      onClick={() => handleEditPost(post)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                      title="Edit post"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDeletePost(post._id)}
-                      disabled={deleting === post._id}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50"
-                      title="Delete post"
-                    >
-                      {deleting === post._id ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Post Content */}
-              <div className="mb-3">
-                {editingPost === post._id ? (
-                  <div className="space-y-3">
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                      rows={3}
-                      maxLength={280}
-                      placeholder="What's on your mind?"
-                    />
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
-                        {editText.length}/280 characters
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setEditingPost(null);
-                            setEditText("");
-                          }}
-                          className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleUpdatePost(post._id)}
-                          disabled={editText.trim().length === 0}
-                          className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        >
-                          Save
-                        </button>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {post.user?.fullName}
+                      </p>
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>@{post.user?.username}</span>
+                        <span>•</span>
+                        <span>{formatDate(post.createdAt)}</span>
+                        <span>•</span>
+                        <div className="flex items-center space-x-1">
+                          {getVisibilityIcon(post.visibility || "public")}
+                          <span>
+                            {getVisibilityLabel(post.visibility || "public")}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <p className="text-gray-900 whitespace-pre-wrap">{post.text}</p>
-                )}
-              </div>
 
-              {/* Post Image */}
-              {post.img && (
+                  {/* Actions Menu (only for own posts) */}
+                  {isOwnProfile && (
+                    <div className="flex items-center space-x-2">
+                      {/* Visibility Dropdown */}
+                      <div className="relative">
+                        <select
+                          value={post.visibility || "public"}
+                          onChange={(e) =>
+                            handleVisibilityChange(post._id, e.target.value)
+                          }
+                          disabled={visibilityChanging === post._id}
+                          className="text-xs bg-white border border-gray-300 rounded px-2 py-1 text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="public">Public</option>
+                          <option value="followers">Followers only</option>
+                          <option value="private">Private</option>
+                        </select>
+                        {visibilityChanging === post._id && (
+                          <div className="absolute right-0 top-0 mt-1 mr-1">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Edit Button */}
+                      <button
+                        onClick={() => handleEditPost(post)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Edit post"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDeletePost(post._id)}
+                        disabled={deleting === post._id}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors disabled:opacity-50"
+                        title="Delete post"
+                      >
+                        {deleting === post._id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                        ) : (
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Post Content */}
                 <div className="mb-3">
-                  <img
-                    src={post.img}
-                    alt="Post content"
-                    className="rounded-lg max-w-full h-auto max-h-96 object-cover"
-                  />
+                  {editingPost === post._id ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                        rows={3}
+                        maxLength={280}
+                        placeholder="What's on your mind?"
+                      />
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-500">
+                          {editText.length}/280 characters
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              setEditingPost(null);
+                              setEditText("");
+                            }}
+                            className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleUpdatePost(post._id)}
+                            disabled={editText.trim().length === 0}
+                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-900 whitespace-pre-wrap">
+                      {post.text}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Post Stats */}
-              <div className="flex items-center space-x-6 text-sm text-gray-500 pt-3 border-t border-gray-100">
-                <div className="flex items-center space-x-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span>{post.likes?.length || 0}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span>{post.comments?.length || 0}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                  </svg>
-                  <span>Share</span>
+                {/* Post Image */}
+                {post.img && (
+                  <div className="mb-3">
+                    <img
+                      src={post.img}
+                      alt="Post content"
+                      className="rounded-lg max-w-full h-auto max-h-96 object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Post Stats */}
+                <div className="flex items-center space-x-6 text-sm text-gray-500 pt-3 border-t border-gray-100">
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => handleLike(post._id)}
+                      className={`flex items-center space-x-1 transition-colors ${
+                        isLiked(post) ? "text-pink-500" : "hover:text-pink-500"
+                      }`}
+                    >
+                      {isLiked(post) ? (
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke="none"
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                      )}
+                      <span>{post.likes?.length || 0}</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    <span>{post.comments?.length || 0}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                      />
+                    </svg>
+                    <span>Share</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );})}
         </div>
       )}
     </div>
