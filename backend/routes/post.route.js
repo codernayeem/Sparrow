@@ -11,6 +11,8 @@ import {
   getDashboardPosts,
   likeUnlikePost,
   commentOnPost,
+  replyToComment,
+  searchUsers,
 } from "../controllers/post.controller.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 
@@ -59,5 +61,7 @@ router.delete("/:id", protectRoute, deletePost);
 
 router.post("/like/:id", protectRoute, likeUnlikePost);
 router.post("/comment/:id", protectRoute, commentOnPost);
+router.post("/reply/:postId/:commentId", protectRoute, replyToComment);
+router.get("/search/users", protectRoute, searchUsers);
 
 export default router;

@@ -2,6 +2,23 @@ import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
+// Helper function to extract mentions from text
+const extractMentions = async (text) => {
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  
+  while ((match = mentionRegex.exec(text)) !== null) {
+    const username = match[1];
+    const user = await User.findOne({ username }).select('_id username fullName');
+    if (user) {
+      mentions.push(user._id);
+    }
+  }
+  
+  return mentions;
+};
+
 export const createPost = async (req, res) => {
   try {
     const { text } = req.body;
@@ -64,6 +81,26 @@ export const getUserPosts = async (req, res) => {
           path: "comments.user",
           select: "-password"
         })
+        .populate({
+          path: "comments.mentions",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replyTo",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replies.user",
+          select: "-password",
+        })
+        .populate({
+          path: "comments.replies.mentions",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replies.replyTo",
+          select: "username fullName profileImg",
+        })
         .sort({ createdAt: -1 });
     } else {
       // If viewing another user's profile, only show public posts and posts visible to followers if following
@@ -83,6 +120,26 @@ export const getUserPosts = async (req, res) => {
         .populate({
           path: "comments.user",
           select: "-password"
+        })
+        .populate({
+          path: "comments.mentions",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replyTo",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replies.user",
+          select: "-password",
+        })
+        .populate({
+          path: "comments.replies.mentions",
+          select: "username fullName profileImg",
+        })
+        .populate({
+          path: "comments.replies.replyTo",
+          select: "username fullName profileImg",
         })
         .sort({ createdAt: -1 });
     }
@@ -267,6 +324,11 @@ export const getDashboardPosts = async (req, res) => {
     const userPosts = await Post.find({ user: currentUserId })
       .populate({ path: "user", select: "-password" })
       .populate({ path: "comments.user", select: "-password" })
+      .populate({ path: "comments.mentions", select: "username fullName profileImg" })
+      .populate({ path: "comments.replyTo", select: "username fullName profileImg" })
+      .populate({ path: "comments.replies.user", select: "-password" })
+      .populate({ path: "comments.replies.mentions", select: "username fullName profileImg" })
+      .populate({ path: "comments.replies.replyTo", select: "username fullName profileImg" })
       .sort({ createdAt: -1 });
 
     // Fetch following posts
@@ -276,6 +338,11 @@ export const getDashboardPosts = async (req, res) => {
     const followingPosts = await Post.find({ user: { $in: user.following } })
       .populate({ path: "user", select: "-password" })
       .populate({ path: "comments.user", select: "-password" })
+      .populate({ path: "comments.mentions", select: "username fullName profileImg" })
+      .populate({ path: "comments.replyTo", select: "username fullName profileImg" })
+      .populate({ path: "comments.replies.user", select: "-password" })
+      .populate({ path: "comments.replies.mentions", select: "username fullName profileImg" })
+      .populate({ path: "comments.replies.replyTo", select: "username fullName profileImg" })
       .sort({ createdAt: -1 });
 
     // Merge posts
@@ -365,9 +432,13 @@ export const commentOnPost = async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
+    // Extract mentions from the comment text
+    const mentions = await extractMentions(text);
+
     const comment = {
       user: userId,
-      text: text.trim()
+      text: text.trim(),
+      mentions: mentions
     };
 
     post.comments.push(comment);
@@ -382,12 +453,128 @@ export const commentOnPost = async (req, res) => {
       .populate({
         path: "comments.user",
         select: "-password",
+      })
+      .populate({
+        path: "comments.mentions",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replyTo",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replies.user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.replies.mentions",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replies.replyTo",
+        select: "username fullName profileImg",
       });
 
     // Return the updated comments array
     res.status(200).json(updatedPost.comments);
   } catch (error) {
     console.log("Error in commentOnPost controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const replyToComment = async (req, res) => {
+  try {
+    const { text, replyToUserId } = req.body;
+    const { postId, commentId } = req.params;
+    const userId = req.user._id;
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ error: "Reply text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const comment = post.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    // Extract mentions from the reply text
+    const mentions = await extractMentions(text);
+
+    const reply = {
+      user: userId,
+      text: text.trim(),
+      mentions: mentions,
+      replyTo: replyToUserId || comment.user
+    };
+
+    comment.replies.push(reply);
+    await post.save();
+
+    // Populate the updated post with all necessary details
+    const updatedPost = await Post.findById(postId)
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.mentions",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replyTo",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replies.user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.replies.mentions",
+        select: "username fullName profileImg",
+      })
+      .populate({
+        path: "comments.replies.replyTo",
+        select: "username fullName profileImg",
+      });
+
+    // Return the updated comments array
+    res.status(200).json(updatedPost.comments);
+  } catch (error) {
+    console.log("Error in replyToComment controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({ error: "Query must be at least 2 characters" });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: query, $options: 'i' } },
+        { fullName: { $regex: query, $options: 'i' } }
+      ]
+    })
+    .select('username fullName profileImg')
+    .limit(10);
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.log("Error in searchUsers controller: ", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
