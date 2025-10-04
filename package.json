@@ -8,7 +8,8 @@
 		"dev": "cross-env NODE_ENV=development nodemon backend/server.js",
 		"start": "cross-env NODE_ENV=production node backend/server.js",
 		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
-		"seed-users": "node backend/scripts/seedUsers.js"
+		"seed-users": "node backend/scripts/seedUsers.js",
+		"seed-data": "node backend/scripts/seedData.js"
 	},
   "repository": {
     "type": "git",
