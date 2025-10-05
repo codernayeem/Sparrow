@@ -7,6 +7,8 @@ import SignInPage from './pages/auth/login/SignInPage';
 import Dashboard from './pages/dashboard/Dashboard';
 import ProfilePage from './pages/profile/ProfilePage';
 import PeoplePage from './pages/people/PeoplePage';
+import NotificationsPage from './pages/notifications/NotificationsPage';
+import MessagesPage from './pages/messages/MessagesPage';
 
 const App = () => {
   return (
@@ -19,6 +21,8 @@ const App = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/people" element={<PeoplePage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/messages" element={<MessagesPage />} />
       </Routes>
     </Router>
   );
