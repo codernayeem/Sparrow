@@ -223,127 +223,118 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                     )}
 
                 {/* Comments */}
-                {post.comments.length > 0 && (
-                  <div className="mt-2 border-t pt-2 text-sm text-gray-700">
-                    {showComments[post._id] ? (
-                      <div className="space-y-3">
-                        {post.comments.map((comment) => (
-                          <div key={comment._id} className="space-y-2">
-                            {/* Main Comment */}
-                            <div className="flex space-x-2">
-                              <img
-                                src={comment.user.profileImg || "/default-avatar.png"}
-                                alt={comment.user.fullName}
-                                className="w-6 h-6 rounded-full"
-                              />
-                              <div className="flex-1">
-                                <div className="bg-gray-100 rounded-lg px-3 py-2">
-                                  <p className="font-semibold text-xs text-gray-900">
-                                    {comment.user.fullName}
-                                  </p>
-                                  <p className="text-sm text-gray-800">
-                                    {renderMentions(comment.text)}
-                                  </p>
-                                </div>
-                                <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                {post.comments.length > 0 && showComments[post._id] && (
+                  <div className="mt-2 text-sm text-gray-700">
+                    <div className="space-y-3">
+                      {post.comments.map((comment) => (
+                        <div key={comment._id} className="space-y-2">
+                          {/* Main Comment */}
+                          <div className="flex space-x-2">
+                            <img
+                              src={comment.user.profileImg || "/default-avatar.png"}
+                              alt={comment.user.fullName}
+                              className="w-6 h-6 rounded-full"
+                            />
+                            <div className="flex-1">
+                              <div className="bg-gray-100 rounded-lg px-3 py-2">
+                                <p className="font-semibold text-xs text-gray-900">
+                                  {comment.user.fullName}
+                                </p>
+                                <p className="text-sm text-gray-800">
+                                  {renderMentions(comment.text)}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
+                                <button
+                                  onClick={() => startReply(post._id, comment._id, comment.user)}
+                                  className="hover:text-blue-600 transition-colors"
+                                >
+                                  Reply
+                                </button>
+                                {comment.replies && comment.replies.length > 0 && (
                                   <button
-                                    onClick={() => startReply(post._id, comment._id, comment.user)}
+                                    onClick={() => toggleReplies(comment._id)}
                                     className="hover:text-blue-600 transition-colors"
                                   >
-                                    Reply
+                                    {showReplies[comment._id] ? 'Hide' : 'View'} {comment.replies.length} repl{comment.replies.length === 1 ? 'y' : 'ies'}
                                   </button>
-                                  {comment.replies && comment.replies.length > 0 && (
-                                    <button
-                                      onClick={() => toggleReplies(comment._id)}
-                                      className="hover:text-blue-600 transition-colors"
-                                    >
-                                      {showReplies[comment._id] ? 'Hide' : 'View'} {comment.replies.length} repl{comment.replies.length === 1 ? 'y' : 'ies'}
-                                    </button>
-                                  )}
-                                </div>
+                                )}
                               </div>
                             </div>
+                          </div>
 
-                            {/* Replies */}
-                            {comment.replies && comment.replies.length > 0 && showReplies[comment._id] && (
-                              <div className="ml-8 space-y-2">
-                                {comment.replies.map((reply) => (
-                                  <div key={reply._id} className="flex space-x-2">
-                                    <img
-                                      src={reply.user.profileImg || "/default-avatar.png"}
-                                      alt={reply.user.fullName}
-                                      className="w-5 h-5 rounded-full"
-                                    />
-                                    <div className="flex-1">
-                                      <div className="bg-gray-50 rounded-lg px-3 py-2">
-                                        <p className="font-semibold text-xs text-gray-900">
-                                          {reply.user.fullName}
-                                        </p>
-                                        <p className="text-sm text-gray-800">
-                                          {renderMentions(reply.text)}
-                                        </p>
-                                      </div>
+                          {/* Replies */}
+                          {comment.replies && comment.replies.length > 0 && showReplies[comment._id] && (
+                            <div className="ml-8 space-y-2">
+                              {comment.replies.map((reply) => (
+                                <div key={reply._id} className="flex space-x-2">
+                                  <img
+                                    src={reply.user.profileImg || "/default-avatar.png"}
+                                    alt={reply.user.fullName}
+                                    className="w-5 h-5 rounded-full"
+                                  />
+                                  <div className="flex-1">
+                                    <div className="bg-gray-50 rounded-lg px-3 py-2">
+                                      <p className="font-semibold text-xs text-gray-900">
+                                        {reply.user.fullName}
+                                      </p>
+                                      <p className="text-sm text-gray-800">
+                                        {renderMentions(reply.text)}
+                                      </p>
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Reply Input */}
-                            {replyingTo[`${post._id}_${comment._id}`] && (
-                              <div className="ml-8">
-                                <div className="flex space-x-2">
-                                  <img
-                                    src={currentUser?.profileImg || "/default-avatar.png"}
-                                    alt={currentUser?.fullName}
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                  <MentionInput
-                                    value={commentText[`${post._id}_${comment._id}`] || ""}
-                                    onChange={(text) => setCommentText(prev => ({ ...prev, [`${post._id}_${comment._id}`]: text }))}
-                                    onKeyPress={(e) => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id);
-                                      }
-                                    }}
-                                    placeholder="Write a reply..."
-                                    className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-                                    disabled={isSubmittingComment[`${post._id}_${comment._id}`]}
-                                    replyTo={replyingTo[`${post._id}_${comment._id}`]}
-                                    onCancelReply={() => cancelReply(post._id, comment._id)}
-                                  />
-                                  <button
-                                    onClick={() => handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id)}
-                                    disabled={!commentText[`${post._id}_${comment._id}`]?.trim() || isSubmittingComment[`${post._id}_${comment._id}`]}
-                                    className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {isSubmittingComment[`${post._id}_${comment._id}`] ? (
-                                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                      "Reply"
-                                    )}
-                                  </button>
                                 </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Reply Input */}
+                          {replyingTo[`${post._id}_${comment._id}`] && (
+                            <div className="ml-8">
+                              <div className="flex space-x-2">
+                                <img
+                                  src={currentUser?.profileImg || "/default-avatar.png"}
+                                  alt={currentUser?.fullName}
+                                  className="w-6 h-6 rounded-full"
+                                />
+                                <MentionInput
+                                  value={commentText[`${post._id}_${comment._id}`] || ""}
+                                  onChange={(text) => setCommentText(prev => ({ ...prev, [`${post._id}_${comment._id}`]: text }))}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                      e.preventDefault();
+                                      handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id);
+                                    }
+                                  }}
+                                  placeholder="Write a reply..."
+                                  className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                                  disabled={isSubmittingComment[`${post._id}_${comment._id}`]}
+                                  replyTo={replyingTo[`${post._id}_${comment._id}`]}
+                                  onCancelReply={() => cancelReply(post._id, comment._id)}
+                                />
+                                <button
+                                  onClick={() => handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id)}
+                                  disabled={!commentText[`${post._id}_${comment._id}`]?.trim() || isSubmittingComment[`${post._id}_${comment._id}`]}
+                                  className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {isSubmittingComment[`${post._id}_${comment._id}`] ? (
+                                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  ) : (
+                                    "Reply"
+                                  )}
+                                </button>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => toggleComments(post._id)}
-                          className="text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          Hide comments
-                        </button>
-                      </div>
-                    ) : (
+                            </div>
+                          )}
+                        </div>
+                      ))}
                       <button
                         onClick={() => toggleComments(post._id)}
-                        className="text-sm text-gray-600 hover:text-gray-800"
+                        className="text-xs text-gray-500 hover:text-gray-700"
                       >
-                        View all {post.comments.length} comment{post.comments.length !== 1 ? 's' : ''}
+                        Hide comments
                       </button>
-                    )}
+                    </div>
                   </div>
                 )}
 
@@ -405,133 +396,9 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                       </button>
                     </div>
 
-                    {/* Comments Section */}
-                    {post.comments && post.comments.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        {showComments[post._id] ? (
-                          <div className="space-y-3 mb-3">
-                            {post.comments.map((comment) => (
-                              <div key={comment._id} className="space-y-2">
-                                {/* Main Comment */}
-                                <div className="flex space-x-2">
-                                  <img
-                                    src={comment.user?.profileImg || "/default-avatar.png"}
-                                    alt={comment.user?.fullName}
-                                    className="w-6 h-6 rounded-full"
-                                  />
-                                  <div className="flex-1">
-                                    <div className="bg-gray-100 rounded-lg px-3 py-2">
-                                      <p className="font-semibold text-xs text-gray-900">
-                                        {comment.user?.fullName}
-                                      </p>
-                                      <p className="text-sm text-gray-800">
-                                        {renderMentions(comment.text)}
-                                      </p>
-                                    </div>
-                                    <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                                      <button
-                                        onClick={() => startReply(post._id, comment._id, comment.user)}
-                                        className="hover:text-blue-600 transition-colors"
-                                      >
-                                        Reply
-                                      </button>
-                                      {comment.replies && comment.replies.length > 0 && (
-                                        <button
-                                          onClick={() => toggleReplies(comment._id)}
-                                          className="hover:text-blue-600 transition-colors"
-                                        >
-                                          {showReplies[comment._id] ? 'Hide' : 'View'} {comment.replies.length} repl{comment.replies.length === 1 ? 'y' : 'ies'}
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Replies */}
-                                {comment.replies && comment.replies.length > 0 && showReplies[comment._id] && (
-                                  <div className="ml-8 space-y-2">
-                                    {comment.replies.map((reply) => (
-                                      <div key={reply._id} className="flex space-x-2">
-                                        <img
-                                          src={reply.user?.profileImg || "/default-avatar.png"}
-                                          alt={reply.user?.fullName}
-                                          className="w-5 h-5 rounded-full"
-                                        />
-                                        <div className="flex-1">
-                                          <div className="bg-gray-50 rounded-lg px-3 py-2">
-                                            <p className="font-semibold text-xs text-gray-900">
-                                              {reply.user?.fullName}
-                                            </p>
-                                            <p className="text-sm text-gray-800">
-                                              {renderMentions(reply.text)}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-
-                                {/* Reply Input */}
-                                {replyingTo[`${post._id}_${comment._id}`] && (
-                                  <div className="ml-8">
-                                    <div className="flex space-x-2">
-                                      <img
-                                        src={currentUser?.profileImg || "/default-avatar.png"}
-                                        alt={currentUser?.fullName}
-                                        className="w-6 h-6 rounded-full"
-                                      />
-                                      <MentionInput
-                                        value={commentText[`${post._id}_${comment._id}`] || ""}
-                                        onChange={(text) => setCommentText(prev => ({ ...prev, [`${post._id}_${comment._id}`]: text }))}
-                                        onKeyPress={(e) => {
-                                          if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id);
-                                          }
-                                        }}
-                                        placeholder="Write a reply..."
-                                        className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
-                                        disabled={isSubmittingComment[`${post._id}_${comment._id}`]}
-                                        replyTo={replyingTo[`${post._id}_${comment._id}`]}
-                                        onCancelReply={() => cancelReply(post._id, comment._id)}
-                                      />
-                                      <button
-                                        onClick={() => handleReply(post._id, comment._id, replyingTo[`${post._id}_${comment._id}`]._id)}
-                                        disabled={!commentText[`${post._id}_${comment._id}`]?.trim() || isSubmittingComment[`${post._id}_${comment._id}`]}
-                                        className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                      >
-                                        {isSubmittingComment[`${post._id}_${comment._id}`] ? (
-                                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        ) : (
-                                          "Reply"
-                                        )}
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            <button
-                              onClick={() => toggleComments(post._id)}
-                              className="text-xs text-gray-500 hover:text-gray-700"
-                            >
-                              Hide comments
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => toggleComments(post._id)}
-                            className="text-sm text-gray-600 hover:text-gray-800 mb-3"
-                          >
-                            View all {post.comments.length} comment{post.comments.length !== 1 ? 's' : ''}
-                          </button>
-                        )}
-                      </div>
-                    )}
 
                     {/* Comment Input Section */}
-                    <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="mt-3 pt-3">
                       <div className="flex space-x-2">
                         <img
                           src={currentUser?.profileImg || "/default-avatar.png"}

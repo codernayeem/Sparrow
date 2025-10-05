@@ -166,11 +166,12 @@ const Sidebar = ({ user, onLogout }) => {
 
         {/* User Profile */}
         <div className="p-4 mt-auto">
-          <button
-            onClick={onLogout}
-            className="w-full flex items-center justify-between p-3 rounded-full hover:bg-gray-100 transition-colors duration-200"
-          >
-            <div className="flex items-center">
+          <div className="flex items-center justify-between p-3 rounded-full hover:bg-gray-100 transition-colors duration-200">
+            {/* Profile Section - Clickable */}
+            <button
+              onClick={() => navigate('/profile')}
+              className="flex items-center flex-1 text-left"
+            >
               <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
                 {user?.profileImg ? (
                   <img
@@ -190,10 +191,37 @@ const Sidebar = ({ user, onLogout }) => {
                 <p className="text-sm font-bold text-gray-900 truncate max-w-[120px]">{user?.fullName}</p>
                 <p className="text-sm text-gray-500 truncate max-w-[120px]">@{user?.username}</p>
               </div>
-            </div>
-            <svg className="w-5 h-5 text-gray-500 hidden xl:block" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </button>
+
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to logout?')) {
+                  onLogout();
+                }
+              }}
+              className="hidden xl:block p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
+              title="Logout"
+            >
+              <svg className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Logout Button */}
+          <button
+            onClick={() => {
+              if (window.confirm('Are you sure you want to logout?')) {
+                onLogout();
+              }
+            }}
+            className="xl:hidden w-full mt-2 flex items-center justify-center p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
+          >
+            <svg className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
+            <span className="text-sm text-gray-500 group-hover:text-red-500">Logout</span>
           </button>
         </div>
     </div>
