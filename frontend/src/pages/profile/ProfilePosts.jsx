@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import MentionInput from '../../components/MentionInput';
 
-const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostDelete }) => {
+const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostDelete, onPostsChange }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,6 +25,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
         if (response.ok) {
           const data = await response.json();
           setPosts(data);
+          onPostsChange && onPostsChange(data);
         } else {
           setError("Failed to load posts");
         }
@@ -338,18 +339,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Posts ({posts.length})
-        </h2>
-        {posts.length > 0 && (
-          <div className="text-sm text-gray-500">
-            {isOwnProfile ? 'Your posts' : `Posts by ${currentUser?.fullName}`}
-          </div>
-        )}
-      </div>
-
+    <div>
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600 text-sm">{error}</p>
@@ -357,7 +347,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
       )}
 
       {posts.length === 0 ? (
-        <div className="text-center py-12">
+        <div className="text-center py-12 border-b border-gray-200">
           <svg
             className="w-12 h-12 text-gray-400 mx-auto mb-4"
             fill="none"
@@ -380,14 +370,14 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div>
           {posts.map((post) => {
             const isLiked = (post) => post.likes?.includes(currentUser?._id);
 
             return (
               <div
                 key={post._id}
-                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors"
               >
                 {/* Post Header */}
                 <div className="flex items-start justify-between mb-3">
