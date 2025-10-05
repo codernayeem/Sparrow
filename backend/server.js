@@ -8,6 +8,7 @@ import { v2 as cloudinary } from "cloudinary";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import postRoutes from "./routes/post.route.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 // Load environment variables from .env file
 config();
@@ -36,6 +37,9 @@ app.use("/api/users", userRoutes);
 
 // post routes
 app.use("/api/posts", postRoutes);
+
+// notification routes
+app.use("/api/notifications", notificationRoutes);
 
 // test route
 app.get("/test", (req, res) => {
