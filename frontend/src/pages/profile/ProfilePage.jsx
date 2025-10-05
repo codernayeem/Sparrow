@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Layout from '../../components/layout/Layout';
 import FollowButton from '../../components/common/FollowButton';
 import FollowersModal from '../../components/common/FollowersModal';
 import CreatePost from "../createpost/CreatePost.jsx";
@@ -202,17 +203,7 @@ const ProfilePage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: 'include',
-      });
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
+
 
   const fetchMutualFollowers = async (userId) => {
     try {
@@ -268,63 +259,9 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="mr-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <img
-                src="/logo.png"
-                alt="Sparrow Logo"
-                className="w-8 h-8 mr-3"
-              />
-              <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-medium text-sm">
-                    {currentUser?.fullName?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <span className="text-gray-700 font-medium">
-                  {currentUser?.fullName}
-                </span>
-              </div>
-
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <Layout>
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
         {/* Success/Error Messages */}
         {success && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -865,67 +802,68 @@ const ProfilePage = () => {
             setTimeout(() => setSuccess(""), 3000);
           }}
         />
-      </main>
 
-      {/* Followers Modal */}
-      <FollowersModal
-        isOpen={followersModalOpen}
-        onClose={() => setFollowersModalOpen(false)}
-        userId={user._id}
-        type="followers"
-        currentUserId={currentUser?._id}
-      />
+        {/* Followers Modal */}
+        <FollowersModal
+          isOpen={followersModalOpen}
+          onClose={() => setFollowersModalOpen(false)}
+          userId={user._id}
+          type="followers"
+          currentUserId={currentUser?._id}
+        />
 
-      {/* Following Modal */}
-      <FollowersModal
-        isOpen={followingModalOpen}
-        onClose={() => setFollowingModalOpen(false)}
-        userId={user._id}
-        type="following"
-        currentUserId={currentUser?._id}
-      />
-      
-      {/* Create Post Modal */}
-      {showCreatePostModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
-              <button
-                onClick={() => setShowCreatePostModal(false)}
-                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        {/* Following Modal */}
+        <FollowersModal
+          isOpen={followingModalOpen}
+          onClose={() => setFollowingModalOpen(false)}
+          userId={user._id}
+          type="following"
+          currentUserId={currentUser?._id}
+        />
+        
+        {/* Create Post Modal */}
+        {showCreatePostModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
+                <button
+                  onClick={() => setShowCreatePostModal(false)}
+                  className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-            {/* Modal Content */}
-            <div className="p-6">
-              <CreatePost
-                onPostCreated={() => {
-                  setShowCreatePostModal(false);
-                  setSuccess("Post created successfully!");
-                  setTimeout(() => setSuccess(""), 3000);
-                }}
-              />
+              {/* Modal Content */}
+              <div className="p-6">
+                <CreatePost
+                  onPostCreated={() => {
+                    setShowCreatePostModal(false);
+                    setSuccess("Post created successfully!");
+                    setTimeout(() => setSuccess(""), 3000);
+                  }}
+                />
+              </div>
             </div>
           </div>
+        )}
         </div>
-      )}
-    </div>
+      </div>
+    </Layout>
   );
 };
 
