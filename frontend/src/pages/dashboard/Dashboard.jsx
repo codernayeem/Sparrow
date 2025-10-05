@@ -85,7 +85,7 @@ useEffect(() => {
 
   return (
     <Layout>
-      <div className="flex-1 max-w-2xl border-x border-gray-200 bg-white min-h-screen">
+      <div className="w-full bg-white min-h-screen">
         {/* Header */}
         <div className="sticky top-0 bg-white bg-opacity-80 backdrop-blur border-b border-gray-200 p-4">
           <h1 className="text-xl font-bold text-gray-900">Home</h1>

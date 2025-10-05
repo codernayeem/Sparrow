@@ -64,7 +64,7 @@ const Sidebar = ({ user, onLogout }) => {
   return (
     <>
       {/* Mobile menu button */}
-      <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-50">
+      <div className="md:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center">
           <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
           <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
@@ -86,7 +86,7 @@ const Sidebar = ({ user, onLogout }) => {
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -94,17 +94,17 @@ const Sidebar = ({ user, onLogout }) => {
       {/* Sidebar */}
       <div className={`${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 w-64 xl:w-64 lg:w-20 bg-white border-r border-gray-200 flex flex-col h-screen transition-transform duration-300 ease-in-out lg:sticky lg:top-0`}>
+      } md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-full bg-white flex flex-col h-screen transition-transform duration-300 ease-in-out md:sticky md:top-0 border-r border-gray-200`}>
         {/* Logo - Desktop only */}
-        <div className="hidden lg:block p-6 border-b border-gray-200">
+        <div className="hidden md:block p-6">
           <div className="flex items-center">
             <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
-            <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
+            <h1 className="text-xl font-bold text-blue-600 hidden xl:block">Sparrow</h1>
           </div>
         </div>
 
         {/* Mobile header */}
-        <div className="lg:hidden p-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="md:hidden p-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
             <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
             <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
@@ -120,12 +120,12 @@ const Sidebar = ({ user, onLogout }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 pt-8 px-4 space-y-1">
+        <nav className="flex-1 pt-4 px-4 space-y-1">
           {menuItems.map((item) => (
             <button
               key={item.name}
               onClick={() => navigate(item.path)}
-              className={`w-full flex items-center justify-between px-6 py-4 rounded-full transition-all duration-200 group ${
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-full transition-all duration-200 group ${
                 item.active
                   ? 'bg-blue-50 text-blue-600 font-medium'
                   : 'text-gray-700 hover:bg-gray-100'

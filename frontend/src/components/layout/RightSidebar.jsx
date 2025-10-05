@@ -42,15 +42,10 @@ const RightSidebar = () => {
     }
   };
 
-  const trendingTopics = [
-    { topic: '#ReactJS', posts: '15.2K posts' },
-    { topic: '#WebDevelopment', posts: '8.7K posts' },
-    { topic: '#TechNews', posts: '12.1K posts' },
-    { topic: '#Programming', posts: '25.3K posts' },
-  ];
+
 
   return (
-    <div className="w-80 p-4 space-y-4">
+    <div className="w-full p-4 space-y-4 h-screen overflow-y-auto border-l border-gray-200">
       {/* Search Bar */}
       <div className="sticky top-0 bg-gray-50 pb-4">
         <div className="relative">
@@ -67,31 +62,7 @@ const RightSidebar = () => {
         </div>
       </div>
 
-      {/* What's happening */}
-      <div className="bg-gray-100 rounded-2xl p-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-3">What's happening</h2>
-        <div className="space-y-3">
-          {trendingTopics.map((trend, index) => (
-            <div key={index} className="cursor-pointer hover:bg-gray-200 rounded-lg p-2 -m-2 transition-colors">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-500">Trending in Technology</p>
-                  <p className="font-bold text-gray-900">{trend.topic}</p>
-                  <p className="text-sm text-gray-500">{trend.posts}</p>
-                </div>
-                <button className="text-gray-400 hover:text-gray-600 p-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button className="text-blue-500 text-sm hover:underline mt-3">
-          Show more
-        </button>
-      </div>
+
 
       {/* Who to follow */}
       <div className="bg-gray-100 rounded-2xl p-4">
