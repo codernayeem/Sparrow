@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
+import Notification from "../models/notification.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
 // Helper function to extract mentions from text
@@ -378,7 +379,7 @@ export const likeUnlikePost = async (req, res) => {
     const userId = req.user._id;
     const { id: postId } = req.params;
 
-    const post = await Post.findById(postId);
+    const post = await Post.findById(postId).populate('user', 'username fullName');
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
@@ -391,6 +392,31 @@ export const likeUnlikePost = async (req, res) => {
       await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
 
+      // Remove notification if user is the only one who liked, or update notification
+      const updatedPost = await Post.findById(postId);
+      const remainingLikes = updatedPost.likes.length;
+
+      if (remainingLikes === 0) {
+        // Remove notification if no likes left
+        await Notification.findOneAndDelete({
+          to: post.user._id,
+          type: "like",
+          post: postId
+        });
+      } else if (post.user._id.toString() !== userId.toString()) {
+        // Update notification with new count, but only if the post owner didn't unlike their own post
+        const firstLiker = await User.findById(updatedPost.likes[0]).select('username fullName');
+        const message = remainingLikes === 1 
+          ? `${firstLiker.fullName || firstLiker.username} liked your post`
+          : `${firstLiker.fullName || firstLiker.username} and ${remainingLikes - 1} other${remainingLikes > 2 ? 's' : ''} liked your post`;
+
+        await Notification.findOneAndUpdate(
+          { to: post.user._id, type: "like", post: postId },
+          { message: message, read: false },
+          { new: true }
+        );
+      }
+
       const updatedLikes = post.likes.filter(
         (id) => id.toString() !== userId.toString()
       );
@@ -401,12 +427,45 @@ export const likeUnlikePost = async (req, res) => {
       await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
       await post.save();
 
-      // const notification = new Notification({
-      //   from: userId,
-      //   to: post.user,
-      //   type: "like",
-      // });
-      // await notification.save();
+      // Don't create notification if user likes their own post
+      if (post.user._id.toString() !== userId.toString()) {
+        // Get the updated post with current like count
+        const updatedPost = await Post.findById(postId);
+        const likeCount = updatedPost.likes.length;
+        
+        // Get user info who liked the post
+        const liker = await User.findById(userId).select('username fullName');
+        
+        // Create notification message
+        const message = likeCount === 1 
+          ? `${liker.fullName || liker.username} liked your post`
+          : `${liker.fullName || liker.username} and ${likeCount - 1} other${likeCount > 2 ? 's' : ''} liked your post`;
+
+        // Check if notification already exists for this post
+        const existingNotification = await Notification.findOne({
+          to: post.user._id,
+          type: "like",
+          post: postId
+        });
+
+        if (!existingNotification) {
+          const notification = new Notification({
+            from: userId,
+            to: post.user._id,
+            type: "like",
+            post: postId,
+            message: message,
+          });
+          await notification.save();
+        } else {
+          // Update existing notification with new message and mark as unread
+          existingNotification.message = message;
+          existingNotification.from = userId; // Update to show the most recent liker
+          existingNotification.read = false;
+          existingNotification.createdAt = new Date(); // Update timestamp
+          await existingNotification.save();
+        }
+      }
 
       const updatedLikes = post.likes;
       res.status(200).json(updatedLikes);
