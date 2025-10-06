@@ -17,20 +17,27 @@ const notificationSchema = new mongoose.Schema(
       required: true,
       enum: ["follow", "like", "comment", "reply"],
     },
-    read: {
-      type: Boolean,
-      default: false,
-    },
     post: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Post",
-      // Only required for like and comment notifications
+      required: function () {
+        return ["like", "comment", "reply"].includes(this.type);
+      },
+    },
+    message: {
+      type: String,
+      required: false, // Optional: not all notifications need a message (e.g., follow)
+      trim: true,
+    },
+    read: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
 );
 
-// Add compound index for better query performance
+// ✅ Indexes for better performance
 notificationSchema.index({ to: 1, createdAt: -1 });
 notificationSchema.index({ from: 1, to: 1, type: 1 });
 
