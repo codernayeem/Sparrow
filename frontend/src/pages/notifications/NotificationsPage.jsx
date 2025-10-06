@@ -90,7 +90,7 @@ const NotificationsPage = () => {
     
     if (notification.type === 'follow') {
       navigate(`/profile/${notification.from.username}`);
-    } else if ((notification.type === 'like' || notification.type === 'comment') && notification.post) {
+    } else if ((notification.type === 'like' || notification.type === 'comment' || notification.type === 'reply') && notification.post) {
       // Navigate to the post author's profile to view the post
       navigate(`/profile/${notification.from.username}`);
     }
@@ -104,6 +104,8 @@ const NotificationsPage = () => {
         return 'liked your post';
       case 'comment':
         return 'commented on your post';
+      case 'reply':
+        return 'replied to your comment';
       default:
         return 'interacted with you';
     }
@@ -132,6 +134,14 @@ const NotificationsPage = () => {
           <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
             <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+        );
+      case 'reply':
+        return (
+          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
             </svg>
           </div>
         );
