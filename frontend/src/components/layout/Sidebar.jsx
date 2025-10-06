@@ -1,10 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import CreatePost from '../../pages/createpost/CreatePost';
 
-const Sidebar = ({ user, onLogout }) => {
+const Sidebar = ({ user, onLogout, refreshTrigger }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/notifications/unread-count');
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadNotifications(data.unreadCount);
+        }
+      } catch (error) {
+        console.error('Error fetching unread notifications:', error);
+      }
+    };
+
+    if (user) {
+      fetchUnreadCount();
+      // Refresh count every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, refreshTrigger]);
   
   const menuItems = [
     {
@@ -26,7 +50,7 @@ const Sidebar = ({ user, onLogout }) => {
       ),
       path: '/notifications',
       active: location.pathname === '/notifications',
-      badge: '3'
+      badge: unreadNotifications > 0 ? unreadNotifications.toString() : null
     },
     {
       name: 'Messages',
@@ -36,8 +60,7 @@ const Sidebar = ({ user, onLogout }) => {
         </svg>
       ),
       path: '/messages',
-      active: location.pathname === '/messages',
-      badge: '2'
+      active: location.pathname === '/messages'
     },
     {
       name: 'Profile',
@@ -148,13 +171,13 @@ const Sidebar = ({ user, onLogout }) => {
           {/* Post Button */}
           <div className="pt-6">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => setShowCreatePostModal(true)}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition-colors duration-200 text-lg xl:block hidden"
             >
               Post
             </button>
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => setShowCreatePostModal(true)}
               className="xl:hidden w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto transition-colors duration-200"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -225,6 +248,47 @@ const Sidebar = ({ user, onLogout }) => {
           </button>
         </div>
     </div>
+
+    {/* Create Post Modal */}
+    {showCreatePostModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
+            <button
+              onClick={() => setShowCreatePostModal(false)}
+              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Modal Content */}
+          <div className="p-6">
+            <CreatePost
+              onPostCreated={() => {
+                setShowCreatePostModal(false);
+                // Optionally refresh the page or show a success message
+                window.location.reload();
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 };
