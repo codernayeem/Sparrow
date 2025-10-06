@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Notification from "../models/notification.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
 export const getUserProfile = async (req, res) => {
@@ -161,11 +162,28 @@ export const followUnfollowUser = async (req, res) => {
 			// Unfollow user
 			await User.findByIdAndUpdate(id, { $pull: { followers: currentUserId } });
 			await User.findByIdAndUpdate(currentUserId, { $pull: { following: id } });
+			
+			// Remove follow notification if it exists
+			await Notification.findOneAndDelete({
+				from: currentUserId,
+				to: id,
+				type: "follow"
+			});
+			
 			res.status(200).json({ message: "User unfollowed successfully" });
 		} else {
 			// Follow user
 			await User.findByIdAndUpdate(id, { $push: { followers: currentUserId } });
 			await User.findByIdAndUpdate(currentUserId, { $push: { following: id } });
+			
+			// Create follow notification
+			const notification = new Notification({
+				from: currentUserId,
+				to: id,
+				type: "follow"
+			});
+			await notification.save();
+			
 			res.status(200).json({ message: "User followed successfully" });
 		}
 	} catch (error) {

@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Post from "../models/post.model.js";
+import Notification from "../models/notification.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
 // Helper function to extract mentions from text
@@ -391,6 +392,14 @@ export const likeUnlikePost = async (req, res) => {
       await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
 
+      // Remove like notification if it exists
+      await Notification.findOneAndDelete({
+        from: userId,
+        to: post.user,
+        type: "like",
+        post: postId
+      });
+
       const updatedLikes = post.likes.filter(
         (id) => id.toString() !== userId.toString()
       );
@@ -401,12 +410,16 @@ export const likeUnlikePost = async (req, res) => {
       await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
       await post.save();
 
-      // const notification = new Notification({
-      //   from: userId,
-      //   to: post.user,
-      //   type: "like",
-      // });
-      // await notification.save();
+      // Only create notification if user is not liking their own post
+      if (userId.toString() !== post.user.toString()) {
+        const notification = new Notification({
+          from: userId,
+          to: post.user,
+          type: "like",
+          post: postId
+        });
+        await notification.save();
+      }
 
       const updatedLikes = post.likes;
       res.status(200).json(updatedLikes);
@@ -443,6 +456,17 @@ export const commentOnPost = async (req, res) => {
 
     post.comments.push(comment);
     await post.save();
+
+    // Create notification for post owner (if it's not their own comment)
+    if (post.user.toString() !== userId.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: post.user,
+        type: "comment",
+        post: postId,
+      });
+      await notification.save();
+    }
 
     // Populate the newly added comment with user details
     const updatedPost = await Post.findById(postId)
@@ -515,6 +539,42 @@ export const replyToComment = async (req, res) => {
 
     comment.replies.push(reply);
     await post.save();
+
+    // Create notifications for comment replies
+    // Notify the original comment author (if it's not their own reply)
+    if (comment.user.toString() !== userId.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: comment.user,
+        type: "comment",
+        post: postId,
+      });
+      await notification.save();
+    }
+
+    // If replying to a specific user (not the comment author), notify them too
+    if (replyToUserId && replyToUserId !== userId.toString() && replyToUserId !== comment.user.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: replyToUserId,
+        type: "comment",
+        post: postId,
+      });
+      await notification.save();
+    }
+
+    // Also notify the post owner if they're not already being notified
+    if (post.user.toString() !== userId.toString() && 
+        post.user.toString() !== comment.user.toString() && 
+        post.user.toString() !== replyToUserId) {
+      const notification = new Notification({
+        from: userId,
+        to: post.user,
+        type: "comment",
+        post: postId,
+      });
+      await notification.save();
+    }
 
     // Populate the updated post with all necessary details
     const updatedPost = await Post.findById(postId)
