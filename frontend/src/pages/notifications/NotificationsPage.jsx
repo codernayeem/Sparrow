@@ -90,8 +90,8 @@ const NotificationsPage = () => {
     
     if (notification.type === 'follow') {
       navigate(`/profile/${notification.from.username}`);
-    } else if (notification.type === 'like' && notification.post) {
-      // Navigate to post (you might need to implement a post detail page)
+    } else if ((notification.type === 'like' || notification.type === 'comment') && notification.post) {
+      // Navigate to the post author's profile to view the post
       navigate(`/profile/${notification.from.username}`);
     }
   };
