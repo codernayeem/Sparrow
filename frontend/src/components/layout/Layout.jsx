@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/layout/Sidebar';
 import RightSidebar from '../../components/layout/RightSidebar';
 
+// Create context for notification refresh
+export const NotificationContext = createContext();
+
 const Layout = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshNotifications, setRefreshNotifications] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,31 +52,37 @@ const Layout = ({ children }) => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Mobile Navigation */}
-      <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 z-50">
-        <Sidebar user={user} onLogout={handleLogout} />
-      </div>
+  const triggerNotificationRefresh = () => {
+    setRefreshNotifications(prev => prev + 1);
+  };
 
-      {/* Desktop Layout */}
-      <div className="flex justify-center max-w-7xl mx-auto">
-        {/* Left Sidebar */}
-        <div className="hidden md:flex md:w-64 lg:w-80 xl:w-80 flex-shrink-0">
-          <Sidebar user={user} onLogout={handleLogout} />
+  return (
+    <NotificationContext.Provider value={{ triggerNotificationRefresh }}>
+      <div className="min-h-screen bg-white">
+        {/* Mobile Navigation */}
+        <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 z-50">
+          <Sidebar user={user} onLogout={handleLogout} refreshTrigger={refreshNotifications} />
         </div>
-      
-      {/* Main Content */}
-      <main className="flex-1 max-w-2xl min-w-0 border-x border-gray-200">
-        {children}
-      </main>
-      
-        {/* Right Sidebar */}
-        <div className="hidden lg:flex lg:w-80 xl:w-80 flex-shrink-0">
-          <RightSidebar />
+
+        {/* Desktop Layout */}
+        <div className="flex justify-center max-w-7xl mx-auto">
+          {/* Left Sidebar */}
+          <div className="hidden md:flex md:w-64 lg:w-80 xl:w-80 flex-shrink-0">
+            <Sidebar user={user} onLogout={handleLogout} refreshTrigger={refreshNotifications} />
+          </div>
+        
+        {/* Main Content */}
+        <main className="flex-1 max-w-2xl min-w-0 border-x border-gray-200">
+          {children}
+        </main>
+        
+          {/* Right Sidebar */}
+          <div className="hidden lg:flex lg:w-80 xl:w-80 flex-shrink-0">
+            <RightSidebar />
+          </div>
         </div>
       </div>
-    </div>
+    </NotificationContext.Provider>
   );
 };
 

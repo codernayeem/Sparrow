@@ -34,12 +34,10 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // post routes
 app.use("/api/posts", postRoutes);
-
-// notification routes
-app.use("/api/notifications", notificationRoutes);
 
 // test route
 app.get("/test", (req, res) => {

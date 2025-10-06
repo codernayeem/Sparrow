@@ -392,7 +392,7 @@ export const likeUnlikePost = async (req, res) => {
       await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: postId } });
 
-      // Remove notification if user is the only one who liked, or update notification
+      // Handle like notification cleanup or update
       const updatedPost = await Post.findById(postId);
       const remainingLikes = updatedPost.likes.length;
 
@@ -401,14 +401,17 @@ export const likeUnlikePost = async (req, res) => {
         await Notification.findOneAndDelete({
           to: post.user._id,
           type: "like",
-          post: postId
+          post: postId,
         });
       } else if (post.user._id.toString() !== userId.toString()) {
-        // Update notification with new count, but only if the post owner didn't unlike their own post
+        // Update existing notification with new like count
         const firstLiker = await User.findById(updatedPost.likes[0]).select('username fullName');
-        const message = remainingLikes === 1 
-          ? `${firstLiker.fullName || firstLiker.username} liked your post`
-          : `${firstLiker.fullName || firstLiker.username} and ${remainingLikes - 1} other${remainingLikes > 2 ? 's' : ''} liked your post`;
+        const message =
+          remainingLikes === 1
+            ? `${firstLiker.fullName || firstLiker.username} liked your post`
+            : `${firstLiker.fullName || firstLiker.username} and ${
+                remainingLikes - 1
+              } other${remainingLikes > 2 ? 's' : ''} liked your post`;
 
         await Notification.findOneAndUpdate(
           { to: post.user._id, type: "like", post: postId },
@@ -420,32 +423,32 @@ export const likeUnlikePost = async (req, res) => {
       const updatedLikes = post.likes.filter(
         (id) => id.toString() !== userId.toString()
       );
-      res.status(200).json(updatedLikes);
+      return res.status(200).json(updatedLikes);
     } else {
       // Like post
       post.likes.push(userId);
       await User.updateOne({ _id: userId }, { $push: { likedPosts: postId } });
       await post.save();
 
-      // Don't create notification if user likes their own post
+      // Only create notification if not liking own post
       if (post.user._id.toString() !== userId.toString()) {
-        // Get the updated post with current like count
         const updatedPost = await Post.findById(postId);
         const likeCount = updatedPost.likes.length;
-        
-        // Get user info who liked the post
-        const liker = await User.findById(userId).select('username fullName');
-        
-        // Create notification message
-        const message = likeCount === 1 
-          ? `${liker.fullName || liker.username} liked your post`
-          : `${liker.fullName || liker.username} and ${likeCount - 1} other${likeCount > 2 ? 's' : ''} liked your post`;
 
-        // Check if notification already exists for this post
+        const liker = await User.findById(userId).select('username fullName');
+
+        const message =
+          likeCount === 1
+            ? `${liker.fullName || liker.username} liked your post`
+            : `${liker.fullName || liker.username} and ${
+                likeCount - 1
+              } other${likeCount > 2 ? 's' : ''} liked your post`;
+
+        // Check if a notification already exists for this post
         const existingNotification = await Notification.findOne({
           to: post.user._id,
           type: "like",
-          post: postId
+          post: postId,
         });
 
         if (!existingNotification) {
@@ -454,27 +457,26 @@ export const likeUnlikePost = async (req, res) => {
             to: post.user._id,
             type: "like",
             post: postId,
-            message: message,
+            message,
           });
           await notification.save();
         } else {
-          // Update existing notification with new message and mark as unread
           existingNotification.message = message;
-          existingNotification.from = userId; // Update to show the most recent liker
+          existingNotification.from = userId; // Show latest liker
           existingNotification.read = false;
-          existingNotification.createdAt = new Date(); // Update timestamp
+          existingNotification.createdAt = new Date();
           await existingNotification.save();
         }
       }
 
-      const updatedLikes = post.likes;
-      res.status(200).json(updatedLikes);
+      return res.status(200).json(post.likes);
     }
   } catch (error) {
-    console.log("Error in likeUnlikePost controller: ", error);
+    console.log("Error in likeUnlikePost controller:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 export const commentOnPost = async (req, res) => {
   try {
@@ -502,6 +504,17 @@ export const commentOnPost = async (req, res) => {
 
     post.comments.push(comment);
     await post.save();
+
+    // Create notification for post owner (if it's not their own comment)
+    if (post.user.toString() !== userId.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: post.user,
+        type: "comment",
+        post: postId,
+      });
+      await notification.save();
+    }
 
     // Populate the newly added comment with user details
     const updatedPost = await Post.findById(postId)
@@ -574,6 +587,42 @@ export const replyToComment = async (req, res) => {
 
     comment.replies.push(reply);
     await post.save();
+
+    // Create notifications for comment replies
+    // Notify the original comment author (if it's not their own reply)
+    if (comment.user.toString() !== userId.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: comment.user,
+        type: "reply",
+        post: postId,
+      });
+      await notification.save();
+    }
+
+    // If replying to a specific user (not the comment author), notify them too
+    if (replyToUserId && replyToUserId !== userId.toString() && replyToUserId !== comment.user.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: replyToUserId,
+        type: "reply",
+        post: postId,
+      });
+      await notification.save();
+    }
+
+    // Also notify the post owner if they're not already being notified
+    if (post.user.toString() !== userId.toString() && 
+        post.user.toString() !== comment.user.toString() && 
+        post.user.toString() !== replyToUserId) {
+      const notification = new Notification({
+        from: userId,
+        to: post.user,
+        type: "reply",
+        post: postId,
+      });
+      await notification.save();
+    }
 
     // Populate the updated post with all necessary details
     const updatedPost = await Post.findById(postId)

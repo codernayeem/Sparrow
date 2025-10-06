@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RightSidebar = () => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSuggestedUsers = async () => {
@@ -36,10 +41,54 @@ const RightSidebar = () => {
               : user
           )
         );
+        // Also update search results if user is in there
+        setSearchResults(prev => 
+          prev.map(user => 
+            user._id === userId 
+              ? { ...user, isFollowing: !user.isFollowing }
+              : user
+          )
+        );
       }
     } catch (error) {
       console.error('Error following user:', error);
     }
+  };
+
+  const handleSearch = async (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const users = await response.json();
+        setSearchResults(users.slice(0, 5)); // Show only 5 results in sidebar
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      handleSearch(value);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const handleShowMore = () => {
+    navigate('/people');
   };
 
 
@@ -56,10 +105,84 @@ const RightSidebar = () => {
           </div>
           <input
             type="text"
+            value={searchQuery}
+            onChange={handleSearchInputChange}
             placeholder="Search Sparrow"
             className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
           />
         </div>
+        
+        {/* Search Results */}
+        {searchQuery && (
+          <div className="mt-3 bg-white rounded-2xl shadow-lg border border-gray-200 max-h-80 overflow-y-auto">
+            {isSearching ? (
+              <div className="p-4 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 text-sm mt-2">Searching...</p>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="p-2">
+                {searchResults.map((user) => (
+                  <div key={user._id} className="flex items-center space-x-3 hover:bg-gray-100 rounded-lg p-2 transition-colors cursor-pointer" onClick={() => navigate(`/profile/${user.username}`)}>
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                      {user.profileImg ? (
+                        <img
+                          src={user.profileImg}
+                          alt={user.fullName}
+                          className="w-8 h-8 object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">
+                            {user.fullName?.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 text-sm truncate">
+                        {user.fullName}
+                      </p>
+                      <p className="text-gray-500 text-xs truncate">
+                        @{user.username}
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFollow(user._id);
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                        user.isFollowing
+                          ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                          : 'bg-black text-white hover:bg-gray-800'
+                      }`}
+                    >
+                      {user.isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                  </div>
+                ))}
+                {searchResults.length === 5 && (
+                  <div className="p-2 border-t border-gray-200">
+                    <button 
+                      onClick={handleShowMore}
+                      className="text-blue-500 text-sm hover:underline w-full text-left"
+                    >
+                      See all results
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <p className="text-gray-600 text-sm mt-2">No users found</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
 
@@ -121,7 +244,10 @@ const RightSidebar = () => {
             ))}
           </div>
         )}
-        <button className="text-blue-500 text-sm hover:underline mt-3">
+        <button 
+          onClick={handleShowMore}
+          className="text-blue-500 text-sm hover:underline mt-3"
+        >
           Show more
         </button>
       </div>
