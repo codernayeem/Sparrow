@@ -546,7 +546,7 @@ export const replyToComment = async (req, res) => {
       const notification = new Notification({
         from: userId,
         to: comment.user,
-        type: "comment",
+        type: "reply",
         post: postId,
       });
       await notification.save();
@@ -557,7 +557,7 @@ export const replyToComment = async (req, res) => {
       const notification = new Notification({
         from: userId,
         to: replyToUserId,
-        type: "comment",
+        type: "reply",
         post: postId,
       });
       await notification.save();
@@ -570,7 +570,7 @@ export const replyToComment = async (req, res) => {
       const notification = new Notification({
         from: userId,
         to: post.user,
-        type: "comment",
+        type: "reply",
         post: postId,
       });
       await notification.save();
