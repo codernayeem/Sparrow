@@ -162,11 +162,11 @@ const NotificationsPage = () => {
       <Layout>
         <div className="flex-1 max-w-2xl border-x border-gray-200 bg-white min-h-screen">
           <div className="sticky top-0 bg-white bg-opacity-80 backdrop-blur border-b border-gray-200 p-4">
-            <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
+            <h1 className="text-xl font-bold text-gray-900 heading">Notifications</h1>
           </div>
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-500">Loading notifications...</p>
+            <p className="mt-2 text-gray-500 font-medium">Loading notifications...</p>
           </div>
         </div>
       </Layout>
@@ -179,11 +179,11 @@ const NotificationsPage = () => {
         {/* Header */}
         <div className="sticky top-0 bg-white bg-opacity-80 backdrop-blur border-b border-gray-200 p-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
+            <h1 className="text-xl font-bold text-gray-900 heading">Notifications</h1>
             {notifications.length > 0 && notifications.some(n => !n.read) && (
               <button
                 onClick={markAllAsRead}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
               >
                 Mark all as read
               </button>

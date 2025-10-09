@@ -321,6 +321,30 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
     });
   };
 
+  const isVideoFile = (url) => {
+    if (!url) return false;
+    // Check if URL contains video indicators or has video file extensions
+    const videoExtensions = ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.wmv', '.flv', '.m4v', '.3gp', '.ogv'];
+    const lowerUrl = url.toLowerCase();
+    
+    // Check for common video file extensions
+    if (videoExtensions.some(ext => lowerUrl.includes(ext))) {
+      return true;
+    }
+    
+    // Check for Cloudinary video URLs
+    if (lowerUrl.includes('cloudinary.com') && (
+      lowerUrl.includes('/video/') || 
+      lowerUrl.includes('resource_type/video') ||
+      lowerUrl.includes('/v_') // Cloudinary video transformation
+    )) {
+      return true;
+    }
+    
+    // Check for other video hosting patterns
+    return lowerUrl.includes('video') || lowerUrl.includes('/videos/');
+  };
+
   const handleAvatarClick = (username) => {
     navigate(`/profile/${username}`);
   };
@@ -550,14 +574,25 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
                   )}
                 </div>
 
-                {/* Post Image */}
+                {/* Post Media */}
                 {post.img && (
                   <div className="mb-3">
-                    <img
-                      src={post.img}
-                      alt="Post content"
-                      className="rounded-lg max-w-full h-auto max-h-96 object-cover"
-                    />
+                    {isVideoFile(post.img) ? (
+                      <video
+                        src={post.img}
+                        controls
+                        className="rounded-lg max-w-full h-auto max-h-96 border border-gray-200"
+                        preload="metadata"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    ) : (
+                      <img
+                        src={post.img}
+                        alt="Post content"
+                        className="rounded-lg max-w-full h-auto max-h-96 object-cover"
+                      />
+                    )}
                   </div>
                 )}
 

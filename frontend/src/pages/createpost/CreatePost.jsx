@@ -10,15 +10,17 @@ const CreatePost = ({ onPostCreated }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        setError("Please select an image file");
+      // Validate file type (images and videos)
+      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+        setError("Please select an image or video file");
         return;
       }
 
-      // Validate file size (5MB limit)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Image must be less than 5MB");
+      // Validate file size (20MB limit for videos, 5MB for images)
+      const maxSize = file.type.startsWith("video/") ? 20 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        const limit = file.type.startsWith("video/") ? "20MB" : "5MB";
+        setError(`File must be less than ${limit}`);
         return;
       }
 
@@ -31,7 +33,7 @@ const CreatePost = ({ onPostCreated }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!text.trim() && !image) {
-      setError("Post must have text or an image");
+      setError("Post must have text or media");
       return;
     }
 
@@ -89,7 +91,7 @@ const CreatePost = ({ onPostCreated }) => {
           <div className="text-center">
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleImageChange}
               className="hidden"
               id="image-upload"
@@ -117,20 +119,28 @@ const CreatePost = ({ onPostCreated }) => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      Click to upload an image
+                      Click to upload media
                     </p>
                     <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF up to 5MB
+                      Images up to 5MB, Videos up to 20MB
                     </p>
                   </div>
                 </>
               ) : (
                 <div className="relative">
-                  <img
-                    src={preview}
-                    alt="Preview"
-                    className="max-h-64 max-w-full rounded-lg shadow-md"
-                  />
+                  {image && image.type.startsWith("video/") ? (
+                    <video
+                      src={preview}
+                      controls
+                      className="max-h-64 max-w-full rounded-lg shadow-md"
+                    />
+                  ) : (
+                    <img
+                      src={preview}
+                      alt="Preview"
+                      className="max-h-64 max-w-full rounded-lg shadow-md"
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -143,7 +153,7 @@ const CreatePost = ({ onPostCreated }) => {
                     ×
                   </button>
                   <p className="text-xs text-gray-500 mt-2">
-                    Click to change image
+                    Click to change media
                   </p>
                 </div>
               )}
