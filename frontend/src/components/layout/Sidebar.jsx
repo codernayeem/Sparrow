@@ -82,7 +82,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
         <div className="flex items-center">
           <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
           <a href="/dashboard">
-            <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
+            <h1 className="text-xl font-bold text-blue-600 heading">Sparrow</h1>
           </a>
         </div>
         <button
@@ -108,13 +108,13 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
       {/* Sidebar */}
       <div className={`${
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-full bg-white flex flex-col h-screen transition-transform duration-300 ease-in-out md:sticky md:top-0 border-r border-gray-200`}>
+      } md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-full md:w-20 lg:w-80 xl:w-80 bg-white flex flex-col h-screen transition-transform duration-300 ease-in-out md:sticky md:top-0 border-r border-gray-200 md:shadow-sm`}>
         {/* Logo - Desktop only */}
         <div className="hidden md:block p-6">
           <a href="/dashboard" className="flex items-center">
             <div className="flex items-center">
               <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
-              <h1 className="text-xl font-bold text-blue-600 hidden xl:block">Sparrow</h1>
+              <h1 className="text-xl font-bold text-blue-600 hidden lg:block heading">Sparrow</h1>
             </div>
           </a>
         </div>
@@ -123,7 +123,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
         <div className="md:hidden p-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
             <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
-            <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
+            <h1 className="text-xl font-bold text-blue-600 heading">Sparrow</h1>
           </div>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
@@ -149,10 +149,10 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
                 <div className={`${item.active ? 'text-blue-600' : 'text-gray-700 group-hover:text-gray-900'}`}>
                   {item.icon}
                 </div>
-                <span className="ml-5 text-xl font-normal hidden xl:block">{item.name}</span>
+                <span className="ml-5 text-lg font-medium md:hidden lg:block">{item.name}</span>
               </div>
               {item.badge && (
-                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center hidden xl:flex">
+                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center md:hidden lg:flex">
                   {item.badge}
                 </span>
               )}
@@ -163,13 +163,13 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
           <div className="pt-6">
             <button
               onClick={() => setShowCreatePostModal(true)}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full transition-colors duration-200 text-lg xl:block hidden"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-8 rounded-full transition-colors duration-200 text-base md:hidden lg:block shadow-lg"
             >
               Post
             </button>
             <button
               onClick={() => setShowCreatePostModal(true)}
-              className="xl:hidden w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto transition-colors duration-200"
+              className="hidden md:block lg:hidden w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto transition-colors duration-200 shadow-lg"
             >
               <Plus className="w-6 h-6" />
             </button>
@@ -199,8 +199,8 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
                   </div>
                 )}
               </div>
-              <div className="ml-3 hidden xl:block text-left">
-                <p className="text-sm font-bold text-gray-900 truncate max-w-[120px]">{user?.fullName}</p>
+              <div className="ml-3 md:hidden lg:block text-left">
+                <p className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">{user?.fullName}</p>
                 <p className="text-sm text-gray-500 truncate max-w-[120px]">@{user?.username}</p>
               </div>
             </button>
@@ -212,7 +212,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
                   onLogout();
                 }
               }}
-              className="hidden xl:block p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
+              className="md:hidden lg:block p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
               title="Logout"
             >
               <LogOut className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors" />
@@ -226,12 +226,12 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
                 onLogout();
               }
             }}
-            className="xl:hidden w-full mt-2 flex items-center justify-center p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
+            className="hidden md:block lg:hidden w-full mt-2 flex items-center justify-center p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
           >
             <svg className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            <span className="text-sm text-gray-500 group-hover:text-red-500">Logout</span>
+            <span className="text-sm text-gray-500 group-hover:text-red-500 font-medium">Logout</span>
           </button>
         </div>
     </div>
@@ -242,7 +242,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900">Create Post</h2>
+            <h2 className="text-xl font-bold text-gray-900 heading">Create Post</h2>
             <button
               onClick={() => setShowCreatePostModal(false)}
               className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200"

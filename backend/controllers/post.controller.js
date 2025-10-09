@@ -32,7 +32,7 @@ export const createPost = async (req, res) => {
     if (!text && !req.file) {
       return res
         .status(400)
-        .json({ message: "Post must have either text or an image" });
+        .json({ message: "Post must have either text or media" });
     }
 
     if (req.file) {
@@ -40,9 +40,22 @@ export const createPost = async (req, res) => {
       const base64String = `data:${
         req.file.mimetype
       };base64,${req.file.buffer.toString("base64")}`;
+      
+      // Determine resource type based on file mimetype
+      const resourceType = req.file.mimetype.startsWith("video/") ? "video" : "image";
+      
       const uploadResponse = await cloudinary.uploader.upload(base64String, {
         folder: "sparrow",
-        resource_type: "image",
+        resource_type: resourceType,
+        // Add video-specific options if needed
+        ...(resourceType === "video" && {
+          chunk_size: 6000000, // 6MB chunks for large videos
+          eager: [
+            { width: 400, height: 300, crop: "pad", format: "mp4" },
+            { width: 160, height: 100, crop: "crop", gravity: "south", format: "jpg" }
+          ],
+          eager_async: true,
+        }),
       });
       img = uploadResponse.secure_url;
     }
@@ -167,10 +180,21 @@ export const deletePost = async (req, res) => {
       return res.status(401).json({ error: "You can only delete your own posts" });
     }
 
-    // Delete image from cloudinary if exists
+    // Delete media from cloudinary if exists
     if (post.img) {
-      const imgId = post.img.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(`sparrow/${imgId}`);
+      const mediaId = post.img.split("/").pop().split(".")[0];
+      
+      // Try to delete as image first, then as video if that fails
+      try {
+        await cloudinary.uploader.destroy(`sparrow/${mediaId}`, { resource_type: "image" });
+      } catch (error) {
+        // If image deletion fails, try video deletion
+        try {
+          await cloudinary.uploader.destroy(`sparrow/${mediaId}`, { resource_type: "video" });
+        } catch (videoError) {
+          console.log("Failed to delete media from Cloudinary:", videoError);
+        }
+      }
     }
 
     await Post.findByIdAndDelete(id);

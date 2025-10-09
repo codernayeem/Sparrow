@@ -22,12 +22,12 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit to support videos
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
+    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed"), false);
+      cb(new Error("Only image and video files are allowed"), false);
     }
   },
 });
@@ -46,7 +46,7 @@ router.post(
         if (err.code === "LIMIT_FILE_SIZE") {
           return res
             .status(400)
-            .json({ message: "File too large. Maximum size is 5MB." });
+            .json({ message: "File too large. Maximum size is 20MB." });
         }
         return res.status(400).json({ message: err.message });
       }
