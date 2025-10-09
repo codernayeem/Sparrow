@@ -1,10 +1,12 @@
 // src/components/PostsFeed.jsx
 import React from "react";
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import MentionInput from "../../components/MentionInput";
 
 
 const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
+    const navigate = useNavigate();
 
 
     const [localPosts, setLocalPosts] = useState(posts);
@@ -157,6 +159,26 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
     });
   };
 
+  const handleAvatarClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
+  const handleMessageUser = async (userId, e) => {
+    e.stopPropagation();
+    try {
+      // Create or get conversation with this user
+      const response = await fetch(`/api/messages/conversations/${userId}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        // Navigate to messages page
+        navigate('/messages');
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+    }
+  };
+
 
 
   return (
@@ -169,10 +191,13 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
         localPosts.map((post) => { 
             const isLiked = post.likes?.includes(currentUser?._id);
             return (
-              <div key={post._id} className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+              <div key={post._id} className="border-b border-gray-200 p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex space-x-3">
                   {/* Profile Picture */}
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                  <div 
+                    className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleAvatarClick(post.user.username)}
+                  >
                     {post.user.profileImg ? (
                       <img
                         src={post.user.profileImg}
@@ -191,15 +216,38 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                   {/* Post Content */}
                   <div className="flex-1 min-w-0">
                     {/* Header */}
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="font-bold text-gray-900 hover:underline cursor-pointer">
-                        {post.user.fullName}
-                      </h3>
-                      <span className="text-gray-500">@{post.user.username}</span>
-                      <span className="text-gray-500">·</span>
-                      <span className="text-gray-500 text-sm">
-                        {formatDate(post.createdAt)}
-                      </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center space-x-2">
+                        <h3 
+                          className="font-bold text-gray-900 hover:underline cursor-pointer"
+                          onClick={() => handleAvatarClick(post.user.username)}
+                        >
+                          {post.user.fullName}
+                        </h3>
+                        <span 
+                          className="text-gray-500 hover:underline cursor-pointer"
+                          onClick={() => handleAvatarClick(post.user.username)}
+                        >
+                          @{post.user.username}
+                        </span>
+                        <span className="text-gray-500">·</span>
+                        <span className="text-gray-500 text-sm">
+                          {formatDate(post.createdAt)}
+                        </span>
+                      </div>
+                      
+                      {/* Message Button (only for other users) */}
+                      {post.user._id !== currentUser?._id && (
+                        <button
+                          onClick={(e) => handleMessageUser(post.user._id, e)}
+                          className="text-gray-400 hover:text-blue-500 transition-colors p-1 rounded-full hover:bg-blue-50"
+                          title="Send message"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
 
                     {/* Text Content */}
@@ -233,11 +281,15 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                             <img
                               src={comment.user.profileImg || "/default-avatar.png"}
                               alt={comment.user.fullName}
-                              className="w-6 h-6 rounded-full"
+                              className="w-6 h-6 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => handleAvatarClick(comment.user.username)}
                             />
                             <div className="flex-1">
                               <div className="bg-gray-100 rounded-lg px-3 py-2">
-                                <p className="font-semibold text-xs text-gray-900">
+                                <p 
+                                  className="font-semibold text-xs text-gray-900 hover:underline cursor-pointer"
+                                  onClick={() => handleAvatarClick(comment.user.username)}
+                                >
                                   {comment.user.fullName}
                                 </p>
                                 <p className="text-sm text-gray-800">
@@ -271,11 +323,15 @@ const PostFeed = ({ posts, hasMore, isLoadingPosts, currentUser }) => {
                                   <img
                                     src={reply.user.profileImg || "/default-avatar.png"}
                                     alt={reply.user.fullName}
-                                    className="w-5 h-5 rounded-full"
+                                    className="w-5 h-5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => handleAvatarClick(reply.user.username)}
                                   />
                                   <div className="flex-1">
                                     <div className="bg-gray-50 rounded-lg px-3 py-2">
-                                      <p className="font-semibold text-xs text-gray-900">
+                                      <p 
+                                        className="font-semibold text-xs text-gray-900 hover:underline cursor-pointer"
+                                        onClick={() => handleAvatarClick(reply.user.username)}
+                                      >
                                         {reply.user.fullName}
                                       </p>
                                       <p className="text-sm text-gray-800">
