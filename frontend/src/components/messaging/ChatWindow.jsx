@@ -64,15 +64,27 @@ const ChatWindow = ({ conversation, currentUser, onBack }) => {
         setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
       };
 
+      const handleConversationDeleted = ({ conversationId }) => {
+        console.log('🗑️ Conversation deleted event:', conversationId);
+        if (conversationId === conversation._id) {
+          // Navigate back to conversation list if current conversation is deleted
+          if (onBack) {
+            onBack();
+          }
+        }
+      };
+
       // Remove any existing listeners to prevent duplicates
       socket.off('newMessage');
       socket.off('userTyping');
       socket.off('messageDeleted');
+      socket.off('conversationDeleted');
 
       // Add new listeners
       socket.on('newMessage', handleNewMessage);
       socket.on('userTyping', handleUserTyping);
       socket.on('messageDeleted', handleMessageDeleted);
+      socket.on('conversationDeleted', handleConversationDeleted);
 
       console.log('✅ Socket listeners registered');
 
@@ -81,11 +93,12 @@ const ChatWindow = ({ conversation, currentUser, onBack }) => {
         socket.off('newMessage', handleNewMessage);
         socket.off('userTyping', handleUserTyping);
         socket.off('messageDeleted', handleMessageDeleted);
+        socket.off('conversationDeleted', handleConversationDeleted);
       };
     } else {
       console.log('❌ Socket or conversation not available:', { socket: !!socket, conversationId: conversation?._id });
     }
-  }, [socket, conversation?._id, currentUser?._id]);
+  }, [socket, conversation?._id, currentUser?._id, onBack]);
 
   useEffect(() => {
     scrollToBottom();
@@ -108,26 +121,6 @@ const ChatWindow = ({ conversation, currentUser, onBack }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleNewMessage = (message) => {
-    if (message.conversation === conversation?._id) {
-      setMessages((prev) => [...prev, message]);
-    }
-  };
-
-  const handleUserTyping = ({ userId, isTyping }) => {
-    if (userId !== currentUser?._id) {
-      setTyping(isTyping);
-      if (isTyping) {
-        // Clear typing after 3 seconds
-        setTimeout(() => setTyping(false), 3000);
-      }
-    }
-  };
-
-  const handleMessageDeleted = ({ messageId }) => {
-    setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
   };
 
   const scrollToBottom = () => {
