@@ -94,9 +94,9 @@ const RightSidebar = () => {
   };
 
   return (
-    <div className="w-full p-4 space-y-4 h-screen overflow-y-auto border-l border-gray-200">
+    <div className="w-full p-4 space-y-4 h-screen overflow-y-auto border-l border-gray-200 bg-white shadow-sm">
       {/* Search Bar */}
-      <div className="sticky top-0 bg-gray-50 pb-4">
+      <div className="sticky top-0 bg-white pb-4">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
@@ -118,7 +118,7 @@ const RightSidebar = () => {
             value={searchQuery}
             onChange={handleSearchInputChange}
             placeholder="Search Sparrow"
-            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+            className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-full text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-medium"
           />
         </div>
 
@@ -128,7 +128,7 @@ const RightSidebar = () => {
             {isSearching ? (
               <div className="p-4 text-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-600 text-sm mt-2">Searching...</p>
+                <p className="text-gray-600 text-sm mt-2 font-medium">Searching...</p>
               </div>
             ) : searchResults.length > 0 ? (
               <div className="p-2">
@@ -154,7 +154,7 @@ const RightSidebar = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 text-sm truncate">
+                      <p className="font-semibold text-gray-900 text-sm truncate">
                         {user.fullName}
                       </p>
                       <p className="text-gray-500 text-xs truncate">
@@ -166,7 +166,7 @@ const RightSidebar = () => {
                         e.stopPropagation();
                         handleFollow(user._id);
                       }}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors shadow-sm ${
                         user.isFollowing
                           ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
                           : "bg-black text-white hover:bg-gray-800"
@@ -180,7 +180,7 @@ const RightSidebar = () => {
                   <div className="p-2 border-t border-gray-200">
                     <button
                       onClick={handleShowMore}
-                      className="text-blue-500 text-sm hover:underline w-full text-left"
+                      className="text-blue-500 text-sm hover:underline w-full text-left font-medium"
                     >
                       See all results
                     </button>
@@ -202,7 +202,7 @@ const RightSidebar = () => {
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                <p className="text-gray-600 text-sm mt-2">No users found</p>
+                <p className="text-gray-600 text-sm mt-2 font-medium">No users found</p>
               </div>
             )}
           </div>
@@ -211,7 +211,7 @@ const RightSidebar = () => {
 
       {/* Who to follow */}
       <div className="bg-gray-100 rounded-2xl p-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-3">Who to follow</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-3 heading">Who to follow</h2>
         {isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -252,7 +252,7 @@ const RightSidebar = () => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-sm truncate">
+                  <p className="font-semibold text-gray-900 text-sm truncate">
                     {user.fullName}
                   </p>
                   <p className="text-gray-500 text-xs truncate">
@@ -278,7 +278,7 @@ const RightSidebar = () => {
         )}
         <button
           onClick={handleShowMore}
-          className="text-blue-500 text-sm hover:underline mt-3"
+          className="text-blue-500 text-sm hover:underline mt-3 font-medium"
         >
           Show more
         </button>

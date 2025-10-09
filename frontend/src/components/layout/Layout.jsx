@@ -63,21 +63,21 @@ const Layout = ({ children }) => {
 
   return (
     <NotificationContext.Provider value={{ triggerNotificationRefresh }}>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-gray-50">
         {/* Mobile Navigation */}
-        <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 z-50">
+        <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 z-50 shadow-sm">
           <Sidebar user={user} onLogout={handleLogout} refreshTrigger={refreshNotifications} />
         </div>
 
         {/* Desktop Layout */}
         <div className="flex justify-center max-w-7xl mx-auto">
           {/* Left Sidebar */}
-          <div className="hidden md:flex md:w-64 lg:w-80 xl:w-80 flex-shrink-0">
+          <div className="hidden md:flex md:w-20 lg:w-80 xl:w-80 flex-shrink-0">
             <Sidebar user={user} onLogout={handleLogout} refreshTrigger={refreshNotifications} />
           </div>
         
         {/* Main Content */}
-        <main className="flex-1 max-w-2xl min-w-0 border-x border-gray-200">
+        <main className="flex-1 max-w-2xl min-w-0 border-x border-gray-200 bg-white shadow-sm">
           {children}
         </main>
         
