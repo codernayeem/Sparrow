@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSocket } from '../../context/SocketContext';
 import Sidebar from '../../components/layout/Sidebar';
 import RightSidebar from '../../components/layout/RightSidebar';
 
@@ -11,6 +12,7 @@ const Layout = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshNotifications, setRefreshNotifications] = useState(0);
   const navigate = useNavigate();
+  const { connectSocket, disconnectSocket } = useSocket();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -19,6 +21,8 @@ const Layout = ({ children }) => {
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
+          // Connect to socket when user is authenticated
+          connectSocket(userData._id);
         } else {
           navigate('/');
         }
@@ -31,10 +35,11 @@ const Layout = ({ children }) => {
     };
 
     fetchUser();
-  }, [navigate]);
+  }, [navigate, connectSocket]);
 
   const handleLogout = async () => {
     try {
+      disconnectSocket(); // Disconnect socket before logout
       await fetch('/api/auth/logout', {
         method: 'POST',
       });

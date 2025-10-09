@@ -85,6 +85,7 @@ const PeoplePage = () => {
                       currentUserId={currentUser?._id}
                       showFollowButton={true}
                       showMutualInfo={true}
+                      showMessageButton={true}
                     />
                   ))}
                 </div>

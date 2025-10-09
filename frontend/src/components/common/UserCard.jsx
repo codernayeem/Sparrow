@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 
-const UserCard = ({ user, currentUserId, showFollowButton = true, showMutualInfo = false }) => {
+const UserCard = ({ user, currentUserId, showFollowButton = true, showMutualInfo = false, showMessageButton = false }) => {
   const navigate = useNavigate();
   const [followingStatus, setFollowingStatus] = useState(
     user.followers?.includes(currentUserId) || false
@@ -14,6 +14,22 @@ const UserCard = ({ user, currentUserId, showFollowButton = true, showMutualInfo
 
   const handleCardClick = () => {
     navigate(`/profile/${user.username}`);
+  };
+
+  const handleMessageClick = async (e) => {
+    e.stopPropagation();
+    try {
+      // Create or get conversation with this user
+      const response = await fetch(`/api/messages/conversations/${user._id}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        // Navigate to messages page
+        navigate('/messages');
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+    }
   };
 
   const isOwnProfile = user._id === currentUserId;
@@ -73,14 +89,27 @@ const UserCard = ({ user, currentUserId, showFollowButton = true, showMutualInfo
           </div>
         </div>
         
-        {showFollowButton && !isOwnProfile && (
-          <div onClick={(e) => e.stopPropagation()}>
-            <FollowButton
-              userId={user._id}
-              isFollowing={followingStatus}
-              onFollowChange={handleFollowChange}
-              size="small"
-            />
+        {!isOwnProfile && (
+          <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+            {showMessageButton && (
+              <button
+                onClick={handleMessageClick}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span>Message</span>
+              </button>
+            )}
+            {showFollowButton && (
+              <FollowButton
+                userId={user._id}
+                isFollowing={followingStatus}
+                onFollowChange={handleFollowChange}
+                size="small"
+              />
+            )}
           </div>
         )}
       </div>
