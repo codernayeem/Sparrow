@@ -231,6 +231,21 @@ const ProfilePage = () => {
     }));
   };
 
+  const handleMessageUser = async () => {
+    try {
+      // Create or get conversation with this user
+      const response = await fetch(`/api/messages/conversations/${user._id}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        // Navigate to messages page
+        navigate('/messages');
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+    }
+  };
+
   const isOwnProfile = currentUser && user && currentUser._id === user._id;
 
   if (isLoading) {
@@ -310,12 +325,23 @@ const ProfilePage = () => {
                 
                 {/* Follow/Edit Button */}
                 {!isOwnProfile ? (
-                  <FollowButton
-                    userId={user._id}
-                    isFollowing={isFollowing}
-                    onFollowChange={handleFollowChange}
-                    size="small"
-                  />
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleMessageUser}
+                      className="px-4 py-1.5 border border-gray-300 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors flex items-center space-x-1"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <span>Message</span>
+                    </button>
+                    <FollowButton
+                      userId={user._id}
+                      isFollowing={isFollowing}
+                      onFollowChange={handleFollowChange}
+                      size="small"
+                    />
+                  </div>
                 ) : (
                   <button
                     onClick={() => setIsEditing(true)}
