@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import Sidebar from '../../components/layout/Sidebar';
 import ConversationList from '../../components/messaging/ConversationList';
@@ -38,9 +38,13 @@ const MessagesPage = () => {
     fetchCurrentUser();
   }, [connectSocket]);
 
-  const handleSelectConversation = (conversation) => {
+  const handleSelectConversation = useCallback((conversation) => {
     setSelectedConversation(conversation);
-  };
+  }, []);
+
+  const handleBackToList = useCallback(() => {
+    setSelectedConversation(null);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -139,7 +143,7 @@ const MessagesPage = () => {
           <ChatWindow 
             conversation={selectedConversation} 
             currentUser={currentUser}
-            onBack={() => setSelectedConversation(null)}
+            onBack={handleBackToList}
           />
         </div>
       </div>
