@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Home, 
+  Bell, 
+  MessageCircle, 
+  User, 
+  Users, 
+  Menu, 
+  X, 
+  Plus, 
+  LogOut 
+} from 'lucide-react';
 import CreatePost from '../../pages/createpost/CreatePost';
 
 const Sidebar = ({ user, onLogout, refreshTrigger }) => {
@@ -33,52 +44,32 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
   const menuItems = [
     {
       name: 'Home',
-      icon: (
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2l-10 9h3v8h6v-6h2v6h6v-8h3l-10-9z"/>
-        </svg>
-      ),
+      icon: <Home className="w-7 h-7" />,
       path: '/dashboard',
       active: location.pathname === '/dashboard'
     },
     {
       name: 'Notifications',
-      icon: (
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-        </svg>
-      ),
+      icon: <Bell className="w-7 h-7" />,
       path: '/notifications',
       active: location.pathname === '/notifications',
       badge: unreadNotifications > 0 ? unreadNotifications.toString() : null
     },
     {
       name: 'Messages',
-      icon: (
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
-        </svg>
-      ),
+      icon: <MessageCircle className="w-7 h-7" />,
       path: '/messages',
       active: location.pathname === '/messages'
     },
     {
       name: 'Profile',
-      icon: (
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
-      ),
+      icon: <User className="w-7 h-7" />,
       path: '/profile',
       active: location.pathname === '/profile' || location.pathname.startsWith('/profile/')
     },
     {
       name: 'People',
-      icon: (
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.5 7H17c-.8 0-1.54.37-2.01 1.02l-2.66 3.6C11.78 12.46 11 13.89 11 15.5V22h2v-6.5c0-.83.34-1.58.88-2.12L15.5 12 17 14.5V22h3zM12.5 11.5c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5S11 9.17 11 10s.67 1.5 1.5 1.5zM5.5 6c1.11 0 2-.89 2-2s-.89-2-2-2-2 .89-2 2 .89 2 2 2zm1.5 1H5c-.8 0-1.54.37-2.01 1.02l-2.66 3.6C.78 12.46 1 13.89 1 15.5V22h2v-6.5c0-.83.34-1.58.88-2.12L5.5 12 7 14.5V22h3v-7.5c0-1.61-.78-3.04-1.33-3.88l-2.66-3.6A1.5 1.5 0 0 0 4.5 7H3c-.8 0-1.54.37-2.01 1.02l-2.66 3.6C-2.22 12.46-2 13.89-2 15.5V22h2v-6.5c0-.83.34-1.58.88-2.12L2.5 12 4 14.5V22h3v-7.5c0-1.61-.78-3.04-1.33-3.88l-2.66-3.6A1.5 1.5 0 0 0-1.5 7z"/>
-        </svg>
-      ),
+      icon: <Users className="w-7 h-7" />,
       path: '/people',
       active: location.pathname === '/people'
     }
@@ -96,13 +87,11 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {isMobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </button>
       </div>
 
@@ -136,9 +125,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
             onClick={() => setIsMobileMenuOpen(false)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -180,9 +167,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
               onClick={() => setShowCreatePostModal(true)}
               className="xl:hidden w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto transition-colors duration-200"
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-              </svg>
+              <Plus className="w-6 h-6" />
             </button>
           </div>
         </nav>
@@ -226,9 +211,7 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
               className="hidden xl:block p-2 rounded-full hover:bg-red-50 transition-colors duration-200 group"
               title="Logout"
             >
-              <svg className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <LogOut className="w-5 h-5 text-gray-500 group-hover:text-red-500 transition-colors" />
             </button>
           </div>
 

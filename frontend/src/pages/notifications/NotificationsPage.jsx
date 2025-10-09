@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Bell } from 'lucide-react';
 import Layout from '../../components/layout/Layout';
 
 const NotificationsPage = () => {
@@ -197,26 +198,24 @@ const NotificationsPage = () => {
         )}
 
         {/* Notifications List */}
-        {notifications.length === 0 ? (
-          <div className="p-8 text-center">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5-5 5-5h-5m-6 10v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-1m0-4h4.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No notifications</h3>
-            <p className="mt-1 text-gray-500">You're all caught up!</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {notifications.map((notification) => (
-              <div
-                key={notification._id}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                  !notification.read ? 'bg-blue-50' : ''
-                }`}
-                onClick={() => handleNotificationClick(notification)}
-              >
-                <div className="flex items-start space-x-3">
-                  {/* Notification Icon */}
+          {notifications.length === 0 ? (
+            <div className="p-8 text-center">
+              <Bell className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No notifications</h3>
+              <p className="mt-1 text-gray-500">You're all caught up!</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {notifications.map((notification) => (
+                <div
+            key={notification._id}
+            className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+              !notification.read ? 'bg-blue-50' : ''
+            }`}
+            onClick={() => handleNotificationClick(notification)}
+                >
+            <div className="flex items-start space-x-3">
+              {/* Notification Icon */}
                   {getNotificationIcon(notification.type)}
                   
                   {/* Profile Picture */}
