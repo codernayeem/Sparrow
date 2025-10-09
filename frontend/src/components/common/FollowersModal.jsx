@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FollowButton from './FollowButton';
 
 const FollowersModal = ({ isOpen, onClose, userId, type, currentUserId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({});
+  const navigate = useNavigate();
 
   const fetchUsers = useCallback(async (page = 1) => {
     setLoading(true);
@@ -33,6 +35,28 @@ const FollowersModal = ({ isOpen, onClose, userId, type, currentUserId }) => {
   const handleLoadMore = () => {
     if (pagination.hasNext) {
       fetchUsers(pagination.currentPage + 1);
+    }
+  };
+
+  const handleAvatarClick = (username) => {
+    navigate(`/profile/${username}`);
+    onClose(); // Close modal when navigating
+  };
+
+  const handleMessageClick = async (user, e) => {
+    e.stopPropagation();
+    try {
+      // Create or get conversation with this user
+      const response = await fetch(`/api/messages/conversations/${user._id}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        // Navigate to messages page
+        navigate('/messages');
+        onClose(); // Close modal when navigating
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
     }
   };
 
@@ -74,7 +98,10 @@ const FollowersModal = ({ isOpen, onClose, userId, type, currentUserId }) => {
                 <div key={user._id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                      <div 
+                        className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handleAvatarClick(user.username)}
+                      >
                         {user.profileImg ? (
                           <img 
                             src={user.profileImg} 
@@ -91,8 +118,18 @@ const FollowersModal = ({ isOpen, onClose, userId, type, currentUserId }) => {
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate text-sm">{user.fullName}</h4>
-                        <p className="text-xs text-blue-600 truncate">@{user.username}</p>
+                        <h4 
+                          className="font-medium text-gray-900 truncate text-sm cursor-pointer hover:underline"
+                          onClick={() => handleAvatarClick(user.username)}
+                        >
+                          {user.fullName}
+                        </h4>
+                        <p 
+                          className="text-xs text-blue-600 truncate cursor-pointer hover:underline"
+                          onClick={() => handleAvatarClick(user.username)}
+                        >
+                          @{user.username}
+                        </p>
                         
                         {user.location && (
                           <div className="flex items-center space-x-1 mt-1">
@@ -116,7 +153,16 @@ const FollowersModal = ({ isOpen, onClose, userId, type, currentUserId }) => {
                     </div>
                     
                     {user._id !== currentUserId && (
-                      <div className="ml-3">
+                      <div className="flex space-x-2 ml-3">
+                        <button
+                          onClick={(e) => handleMessageClick(user, e)}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>Message</span>
+                        </button>
                         <FollowButton
                           userId={user._id}
                           isFollowing={user.followers?.includes(currentUserId) || false}
