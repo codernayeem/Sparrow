@@ -74,6 +74,7 @@ const PeopleSearch = ({ currentUserId }) => {
                 user={user}
                 currentUserId={currentUserId}
                 showFollowButton={true}
+                showMessageButton={true}
               />
             ))}
           </div>

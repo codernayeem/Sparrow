@@ -285,7 +285,7 @@ export const deleteMessage = async (req, res) => {
   }
 };
 
-// Search for users to start a conversation
+// Search for users to start a conversation and existing conversations
 export const searchUsers = async (req, res) => {
   try {
     const { q } = req.query;
@@ -295,23 +295,80 @@ export const searchUsers = async (req, res) => {
       return res.status(400).json({ error: "Search query must be at least 2 characters" });
     }
 
-    const users = await User.find({
-      $and: [
-        { _id: { $ne: userId } }, // Exclude current user
-        {
-          $or: [
-            { username: { $regex: q, $options: "i" } },
-            { fullName: { $regex: q, $options: "i" } },
-          ],
-        },
-      ],
-    })
-      .select("username fullName profileImg")
-      .limit(10);
+    // Search for users that the current user follows
+    const currentUser = await User.findById(userId).populate('following', 'username fullName profileImg');
+    
+    const followedUsers = currentUser.following.filter(user => 
+      user.username.toLowerCase().includes(q.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(q.toLowerCase())
+    );
 
-    res.status(200).json(users);
+    // Also search existing conversations
+    const conversations = await Conversation.find({
+      participants: userId,
+    })
+      .populate({
+        path: "participants",
+        select: "username fullName profileImg",
+        match: { _id: { $ne: userId } },
+      })
+      .populate({
+        path: "lastMessage",
+        select: "content messageType createdAt sender",
+        populate: {
+          path: "sender",
+          select: "username fullName",
+        },
+      });
+
+    const filteredConversations = conversations
+      .filter(conv => conv.participants.length > 0)
+      .filter(conv => 
+        conv.participants[0].username.toLowerCase().includes(q.toLowerCase()) ||
+        conv.participants[0].fullName.toLowerCase().includes(q.toLowerCase())
+      );
+
+    res.status(200).json({
+      users: followedUsers.slice(0, 5), // Limit followed users
+      conversations: filteredConversations.slice(0, 5) // Limit conversations
+    });
   } catch (error) {
     console.log("Error in searchUsers controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Delete a conversation
+export const deleteConversation = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { conversationId } = req.params;
+
+    // Check if user is part of the conversation
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: userId,
+    });
+
+    if (!conversation) {
+      return res.status(404).json({ error: "Conversation not found or access denied" });
+    }
+
+    // Delete all messages in the conversation
+    await Message.deleteMany({ conversation: conversationId });
+
+    // Delete the conversation
+    await Conversation.findByIdAndDelete(conversationId);
+
+    // Emit socket event for real-time update
+    const io = req.app.get("io");
+    if (io) {
+      io.to(conversationId).emit("conversationDeleted", { conversationId });
+    }
+
+    res.status(200).json({ message: "Conversation deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteConversation controller: ", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

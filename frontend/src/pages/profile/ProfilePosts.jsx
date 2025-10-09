@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import MentionInput from '../../components/MentionInput';
 
 const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostDelete, onPostsChange }) => {
@@ -14,6 +15,7 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
   const [isSubmittingComment, setIsSubmittingComment] = useState({});
   const [replyingTo, setReplyingTo] = useState({});
   const [showReplies, setShowReplies] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -319,6 +321,10 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
     });
   };
 
+  const handleAvatarClick = (username) => {
+    navigate(`/profile/${username}`);
+  };
+
 
   if (loading) {
     return (
@@ -382,7 +388,10 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
                 {/* Post Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                    <div 
+                      className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => handleAvatarClick(post.user?.username)}
+                    >
                       {post.user?.profileImg ? (
                         <img
                           src={post.user.profileImg}
@@ -398,11 +407,19 @@ const ProfilePosts = ({ userId, isOwnProfile, currentUser, onPostUpdate, onPostD
                       )}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p 
+                        className="font-medium text-gray-900 hover:underline cursor-pointer"
+                        onClick={() => handleAvatarClick(post.user?.username)}
+                      >
                         {post.user?.fullName}
                       </p>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
-                        <span>@{post.user?.username}</span>
+                        <span 
+                          className="hover:underline cursor-pointer"
+                          onClick={() => handleAvatarClick(post.user?.username)}
+                        >
+                          @{post.user?.username}
+                        </span>
                         <span>•</span>
                         <span>{formatDate(post.createdAt)}</span>
                         <span>•</span>

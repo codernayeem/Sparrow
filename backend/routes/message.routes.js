@@ -7,6 +7,7 @@ import {
   sendMessage,
   deleteMessage,
   searchUsers,
+  deleteConversation,
 } from "../controllers/message.controller.js";
 
 const router = express.Router();
@@ -28,5 +29,8 @@ router.delete("/messages/:messageId", protectRoute, deleteMessage);
 
 // Search users for messaging
 router.get("/search", protectRoute, searchUsers);
+
+// Delete a conversation
+router.delete("/conversations/:conversationId", protectRoute, deleteConversation);
 
 export default router;
