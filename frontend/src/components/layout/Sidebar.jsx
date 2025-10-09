@@ -81,7 +81,9 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
       <div className="md:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center">
           <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
-          <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
+          <a href="/dashboard">
+            <h1 className="text-xl font-bold text-blue-600">Sparrow</h1>
+          </a>
         </div>
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -109,10 +111,12 @@ const Sidebar = ({ user, onLogout, refreshTrigger }) => {
       } md:translate-x-0 fixed md:static inset-y-0 left-0 z-50 w-full bg-white flex flex-col h-screen transition-transform duration-300 ease-in-out md:sticky md:top-0 border-r border-gray-200`}>
         {/* Logo - Desktop only */}
         <div className="hidden md:block p-6">
-          <div className="flex items-center">
-            <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
-            <h1 className="text-xl font-bold text-blue-600 hidden xl:block">Sparrow</h1>
-          </div>
+          <a href="/dashboard" className="flex items-center">
+            <div className="flex items-center">
+              <img src="/logo.png" alt="Sparrow Logo" className="w-8 h-8 mr-3" />
+              <h1 className="text-xl font-bold text-blue-600 hidden xl:block">Sparrow</h1>
+            </div>
+          </a>
         </div>
 
         {/* Mobile header */}
